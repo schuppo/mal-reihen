@@ -1,12 +1,17 @@
+# ✖️ Times Rows
 
 A mobile-first app for practising multiplication tables from 1×1 to 10×10, built with Expo and React Native. Runs on iOS, Android, and Web.
 
 ## Features
 
 - **Training mode** — unlimited practice with instant right/wrong feedback and a running score
-- **Test mode** — 20 timed questions with a final results screen (score + elapsed time)
+- **Test mode** — configurable number of questions with a final results screen (score, grade, elapsed time)
+- **Per-question timer** — optional countdown that auto-submits as wrong when time runs out
+- **Settings** — customise test length (5–30 questions), question timer (5–30 s or off), and whether wrong answers reveal the correct answer
 - Custom numeric keypad for distraction-free input
+- Hardware keyboard support on all platforms (digits, Backspace, Enter)
 - Shake animation on wrong answers, scale animation on correct ones
+- Grade tier on results: 🥇 Perfect · 🥈 Great job · 🥉 Good effort · 📚 Keep practicing
 
 ## Getting Started
 
@@ -35,17 +40,30 @@ npm run web        # Open in browser
 ## Project Structure
 
 ```
-App.tsx                      Navigation root & route type definitions
+App.tsx                      Navigation root, route types, SettingsProvider
 src/
+  context/
+    SettingsContext.tsx       Global settings state (testLength, questionTimer, showCorrectAnswer)
   screens/
     HomeScreen.tsx           Mode selection (Training / Test)
-    ExerciseScreen.tsx       Question UI with NumPad and animations
-    ResultScreen.tsx         End-of-test summary
+    ExerciseScreen.tsx       Question UI with NumPad, timer bar, and animations
+    ResultScreen.tsx         End-of-test summary with grade
+    SettingsScreen.tsx       Settings UI (chips + toggle)
   hooks/
     useExercise.ts           All game logic and state
   components/
     NumPad.tsx               Digit-entry pad (0–9, ⌫, ✓)
 ```
+
+## Settings
+
+Tap ⚙️ on the Home screen to open Settings.
+
+| Setting | Default | Options |
+|---|---|---|
+| Test Length | 20 questions | 5, 10, 15, 20, 25, 30 |
+| Question Timer | 10 s | Off, 5 s, 8 s, 10 s, 15 s, 20 s, 30 s |
+| Show Correct Answer | Off | On / Off |
 
 ## Tech Stack
 
@@ -59,7 +77,8 @@ src/
 ## Type Checking & Testing
 
 ```bash
-npx tsc --noEmit
+npx tsc --noEmit   # TypeScript check
+npm test           # Jest test suite
 ```
 
-No test runner is configured yet — **TDD is mandatory**. Set up Jest + `@testing-library/react-hooks` before adding features that require new logic.
+Tests use `@testing-library/react-native` with `jest-expo`. Coverage includes hook logic (`useExercise.test.ts`), component behaviour (`ExerciseScreen.test.tsx`), rendering of settings (`ExerciseScreen.showCorrectAnswer.test.tsx`), and context state (`SettingsContext.test.tsx`).
