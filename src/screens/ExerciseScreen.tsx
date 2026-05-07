@@ -17,7 +17,7 @@ type Props = {
 
 export default function ExerciseScreen({ navigation, route }: Props) {
   const { mode } = route.params;
-  const { testLength: TEST_LENGTH, questionTimer } = useSettings();
+  const { testLength: TEST_LENGTH, questionTimer, showCorrectAnswer } = useSettings();
   const {
     current, input, feedback, answered, done,
     correctCount, appendDigit, backspace, submit, submitTimeout, progress,
@@ -69,8 +69,10 @@ export default function ExerciseScreen({ navigation, route }: Props) {
     }
   }, [done]);
 
-  // Shake animation on wrong answer
+  // Shake animation on wrong answer — skip on initial mount (feedback starts null in real usage)
+  const isMounted = useRef(false);
   useEffect(() => {
+    if (!isMounted.current) { isMounted.current = true; return; }
     if (feedback === 'wrong') {
       Animated.sequence([
         Animated.timing(shakeAnim, { toValue: 10, duration: 60, useNativeDriver: true }),
@@ -188,13 +190,17 @@ export default function ExerciseScreen({ navigation, route }: Props) {
           </View>
 
           {feedback && (
-            <Text style={[
+            <Text
+              testID="feedback-text"
+              style={[
               styles.feedbackText,
               feedback === 'correct' ? styles.correctText : styles.wrongText,
             ]}>
               {feedback === 'correct'
                 ? '🎉 Correct!'
-                : `❌ ${current.a} × ${current.b} = ${current.answer}`}
+                : showCorrectAnswer
+                  ? `❌ ${current.a} × ${current.b} = ${current.answer}`
+                  : '❌ Wrong!'}
             </Text>
           )}
         </Animated.View>

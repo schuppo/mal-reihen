@@ -16,6 +16,11 @@ describe('SettingsContext – defaults', () => {
     const { result } = renderHook(() => useSettings(), { wrapper });
     expect(result.current.questionTimer).toBe(10);
   });
+
+  it('provides showCorrectAnswer default of false', () => {
+    const { result } = renderHook(() => useSettings(), { wrapper });
+    expect(result.current.showCorrectAnswer).toBe(false);
+  });
 });
 
 describe('SettingsContext – setters', () => {
@@ -42,5 +47,18 @@ describe('SettingsContext – setters', () => {
     act(() => { result.current.setQuestionTimer(null); });
     act(() => { result.current.setQuestionTimer(8); });
     expect(result.current.questionTimer).toBe(8);
+  });
+
+  it('enables showCorrectAnswer via setShowCorrectAnswer', () => {
+    const { result } = renderHook(() => useSettings(), { wrapper });
+    act(() => { result.current.setShowCorrectAnswer(true); });
+    expect(result.current.showCorrectAnswer).toBe(true);
+  });
+
+  it('disables showCorrectAnswer again after enabling', () => {
+    const { result } = renderHook(() => useSettings(), { wrapper });
+    act(() => { result.current.setShowCorrectAnswer(true); });
+    act(() => { result.current.setShowCorrectAnswer(false); });
+    expect(result.current.showCorrectAnswer).toBe(false);
   });
 });

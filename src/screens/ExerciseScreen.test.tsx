@@ -28,11 +28,12 @@ interface RenderOptions {
   mode?: 'training' | 'test';
   questionTimer?: number | null;
   testLength?: number;
+  showCorrectAnswer?: boolean;
 }
 
-function renderExercise({ mode = 'training', questionTimer = null, testLength = 5 }: RenderOptions = {}) {
+function renderExercise({ mode = 'training', questionTimer = null, testLength = 5, showCorrectAnswer = false }: RenderOptions = {}) {
   return render(
-    <SettingsProvider initialTestLength={testLength} initialQuestionTimer={questionTimer}>
+    <SettingsProvider initialTestLength={testLength} initialQuestionTimer={questionTimer} initialShowCorrectAnswer={showCorrectAnswer}>
       <ExerciseScreen navigation={mockNavigation} route={makeRoute(mode)} />
     </SettingsProvider>,
   );
@@ -288,3 +289,6 @@ describe('ExerciseScreen – question timer', () => {
     expect(getByTestId('input-display').props.children).toBe('3');
   });
 });
+
+// ---------- show correct answer setting ----------
+// See ExerciseScreen.showCorrectAnswer.test.tsx for rendering tests of this feature.

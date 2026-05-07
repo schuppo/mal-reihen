@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity,
+  View, Text, StyleSheet, TouchableOpacity, Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSettings } from '../context/SettingsContext';
@@ -9,7 +9,7 @@ const LENGTH_OPTIONS = [5, 10, 15, 20, 25, 30];
 const TIMER_OPTIONS = [5, 8, 10, 15, 20, 30];
 
 export default function SettingsScreen() {
-  const { testLength, setTestLength, questionTimer, setQuestionTimer } = useSettings();
+  const { testLength, setTestLength, questionTimer, setQuestionTimer, showCorrectAnswer, setShowCorrectAnswer } = useSettings();
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -78,6 +78,24 @@ export default function SettingsScreen() {
             : <>Timer set to <Text style={styles.hintBold}>{questionTimer} seconds</Text> per question</>}
         </Text>
 
+        <View style={styles.separator} />
+
+        {/* ── Show Correct Answer ── */}
+        <View style={styles.toggleRow}>
+          <View style={styles.toggleLabel}>
+            <Text style={styles.sectionTitle}>Show Correct Answer</Text>
+            <Text style={styles.sectionDesc}>
+              Reveal the right answer when a wrong answer is given.
+            </Text>
+          </View>
+          <Switch
+            value={showCorrectAnswer}
+            onValueChange={setShowCorrectAnswer}
+            trackColor={{ false: '#ddd', true: '#6C63FF' }}
+            thumbColor="#fff"
+            testID="show-correct-answer-switch"
+          />
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -151,5 +169,14 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: '#ddd',
     marginVertical: 28,
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 16,
+  },
+  toggleLabel: {
+    flex: 1,
   },
 });
