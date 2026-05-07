@@ -20,7 +20,7 @@ export default function HomeScreen({ navigation }: Props) {
         <View style={styles.cards}>
           <TouchableOpacity
             style={[styles.card, styles.trainCard]}
-            onPress={() => navigation.navigate('Exercise', { mode: 'training' })}
+            onPress={() => navigation.navigate('Intro')}
             activeOpacity={0.85}
           >
             <Text style={styles.cardEmoji}>🎓</Text>
@@ -32,7 +32,7 @@ export default function HomeScreen({ navigation }: Props) {
 
           <TouchableOpacity
             style={[styles.card, styles.testCard]}
-            onPress={() => navigation.navigate('Exercise', { mode: 'test' })}
+            onPress={() => navigation.navigate('Intro')}
             activeOpacity={0.85}
           >
             <Text style={styles.cardEmoji}>🏆</Text>

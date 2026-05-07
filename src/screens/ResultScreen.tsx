@@ -60,7 +60,7 @@ export default function ResultScreen({ navigation, route }: Props) {
 
         <TouchableOpacity
           style={[styles.btn, { backgroundColor: color }]}
-          onPress={() => navigation.replace('Exercise', { mode: 'test' })}
+          onPress={() => navigation.replace('Intro')}
         >
           <Text style={styles.btnText}>🔁 Try Again</Text>
         </TouchableOpacity>

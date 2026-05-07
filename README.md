@@ -4,7 +4,7 @@ A mobile-first app for practising multiplication tables from 1×1 to 10×10, bui
 
 ## Features
 
-- **Training mode** — unlimited practice with instant right/wrong feedback and a running score
+- **Training mode** — unlimited practice with instant right/wrong feedback, a running score, and **weighted question selection** (wrong answers appear more often; correct answers fade back)
 - **Test mode** — configurable number of questions with a final results screen (score, grade, elapsed time)
 - **Per-question timer** — optional countdown that auto-submits as wrong when time runs out
 - **Settings** — customise test length (5–30 questions), question timer (5–30 s or off), and whether wrong answers reveal the correct answer
@@ -50,7 +50,7 @@ src/
     ResultScreen.tsx         End-of-test summary with grade
     SettingsScreen.tsx       Settings UI (chips + toggle)
   hooks/
-    useExercise.ts           All game logic and state
+    useExercise.ts           All game logic, state, and weighted question selection (training)
   components/
     NumPad.tsx               Digit-entry pad (0–9, ⌫, ✓)
 ```

@@ -17,7 +17,7 @@ src/
     ResultScreen.tsx    End-of-test summary (correct/total/time); grade(), formatTime() helpers
     SettingsScreen.tsx  Settings UI: test length chips, question timer chips, show-correct-answer toggle
   hooks/
-    useExercise.ts   All game logic (state machine, question gen, scoring); exports Question & AnsweredQuestion interfaces
+    useExercise.ts   All game logic (state machine, question gen, scoring, weighted training); exports Question & AnsweredQuestion interfaces
   components/
     NumPad.tsx       Reusable digit-entry pad; 4×3 layout [7,8,9 / 4,5,6 / 1,2,3 / ⌫,0,✓]
 ```
@@ -36,6 +36,7 @@ src/
 - `testLength` comes from `SettingsContext` (default 20); `ExerciseScreen` reads it via `useSettings()` and passes it to `useExercise`.
 - Input is capped at 3 digits in `useExercise.appendDigit`; answers range 1–100.
 - Feedback auto-advances after 1200 ms (training) / 800 ms (test) via `setTimeout` inside `useExercise.submit`.
+- **Training mode uses weighted question selection** — each `a×b` pair starts with weight 1. A wrong answer (or timeout) multiplies the weight by **3** (max 10), making it appear more often. A correct answer multiplies the weight by **0.5** (min 0.25), making it appear less often. `pickWeightedQuestion` draws the next question proportionally to these weights. Test mode always uses pure random selection.
 - `NumPad` is disabled (`opacity: 0.4`, presses ignored) while feedback is showing.
 - Animations (`shakeAnim`, `scaleAnim`) are owned by `ExerciseScreen`, not the hook. The animation `useEffect` skips the initial mount via an `isMounted` ref. Background colour also flashes green (`#E8FFF0`) on correct and red (`#FFE8E8`) on wrong.
 - `ResultScreen` computes a grade tier via `grade(pct)`: 100% → 🥇 Perfect, ≥80% → 🥈 Great job, ≥60% → 🥉 Good effort, else → 📚 Keep practicing.

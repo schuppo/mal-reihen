@@ -7,6 +7,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
 import HomeScreen from './src/screens/HomeScreen';
+import IntroScreen from './src/screens/IntroScreen';
 import ExerciseScreen from './src/screens/ExerciseScreen';
 import ResultScreen from './src/screens/ResultScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
@@ -14,7 +15,8 @@ import { SettingsProvider } from './src/context/SettingsContext';
 
 export type RootStackParamList = {
   Home: undefined;
-  Exercise: { mode: 'training' | 'test' };
+  Intro: undefined;
+  Exercise: { mode: 'training' | 'test'; tableFilter: number | 'all' };
   Result: { correct: number; total: number; timeSeconds: number };
   Settings: undefined;
 };
@@ -39,6 +41,21 @@ export default function App() {
               <Stack.Screen
                 name="Home"
                 component={HomeScreen}
+                options={({ navigation }) => ({
+                  title: '✖️ Times Rows',
+                  headerRight: () => (
+                    <TouchableOpacity
+                      onPress={() => navigation.navigate('Settings')}
+                      style={{ marginRight: 16 }}
+                    >
+                      <Text style={{ fontSize: 24 }}>⚙️</Text>
+                    </TouchableOpacity>
+                  ),
+                })}
+              />
+              <Stack.Screen
+                name="Intro"
+                component={IntroScreen}
                 options={({ navigation }) => ({
                   title: '✖️ Times Rows',
                   headerRight: () => (

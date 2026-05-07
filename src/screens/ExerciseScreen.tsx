@@ -12,12 +12,12 @@ import { useSettings } from '../context/SettingsContext';
 type Props = StackScreenProps<RootStackParamList, 'Exercise'>;
 
 export default function ExerciseScreen({ navigation, route }: Props) {
-  const { mode } = route.params;
+  const { mode, tableFilter } = route.params;
   const { testLength: TEST_LENGTH, questionTimer, showCorrectAnswer } = useSettings();
   const {
     current, input, feedback, answered, done,
     correctCount, appendDigit, backspace, submit, submitTimeout, progress,
-  } = useExercise(mode, TEST_LENGTH);
+  } = useExercise(mode, TEST_LENGTH, tableFilter);
 
   const shakeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
