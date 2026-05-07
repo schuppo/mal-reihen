@@ -65,6 +65,53 @@ Tap ⚙️ on the Home screen to open Settings.
 | Question Timer | 10 s | Off, 5 s, 8 s, 10 s, 15 s, 20 s, 30 s |
 | Show Correct Answer | Off | On / Off |
 
+## How To: Install on a Physical iOS Device
+
+You have two options — Expo Go (quick, no Apple account required) or a native build (runs standalone, no Expo Go needed).
+
+### Option A — Expo Go (easiest)
+
+> ⚠️ **SDK mismatch gotcha:** This project uses **Expo SDK 55**. Expo Go on the App Store may ship with an older SDK and show a *"Download the latest version of Expo Go"* error even after updating. If that happens, skip to Option B — a development build is the most reliable path for SDK 55+.
+
+1. Install **Expo Go** from the App Store on your iPhone.
+2. Start the dev server on your computer:
+   ```bash
+   npm start
+   ```
+3. Open the Camera app (or the built-in QR scanner in Expo Go) and scan the QR code shown in the terminal.
+4. The app opens immediately in Expo Go. Your phone and computer must be on the **same Wi-Fi network**.
+
+### Option B — Standalone build with EAS (no Expo Go needed)
+
+This creates a proper `.ipa` that installs directly on your device via TestFlight or direct sideloading.
+
+**Prerequisites**
+- An [Apple Developer account](https://developer.apple.com) (free account works for sideloading; paid account required for TestFlight)
+- Xcode installed on your Mac
+- EAS CLI: `npm install -g eas-cli`
+
+**Steps**
+
+1. Log in to your Expo account:
+   ```bash
+   eas login
+   ```
+2. Configure the build (first time only):
+   ```bash
+   eas build:configure
+   ```
+3. Register your device (adds its UDID to your provisioning profile):
+   ```bash
+   eas device:create
+   ```
+4. Build a development or ad-hoc distribution build:
+   ```bash
+   eas build --platform ios --profile development
+   ```
+5. Once the build finishes, EAS provides a QR code / link. Open it on your iPhone to install via the built-in installer.
+
+> **Tip:** For a quick local build without EAS Cloud, run `npm run ios` and choose your connected physical device as the target in the Xcode scheme selector.
+
 ## Tech Stack
 
 | Library | Purpose |
