@@ -3,13 +3,11 @@ import {
   View, Text, StyleSheet, TouchableOpacity, Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { StackScreenProps } from '@react-navigation/stack';
 import { RootStackParamList } from '../../App';
 import { useSettings } from '../context/SettingsContext';
 
-type Props = {
-  navigation: StackNavigationProp<RootStackParamList, 'Home'>;
-};
+type Props = StackScreenProps<RootStackParamList, 'Home'>;
 
 export default function HomeScreen({ navigation }: Props) {
   const { testLength } = useSettings();

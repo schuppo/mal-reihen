@@ -3,14 +3,10 @@ import {
   View, Text, StyleSheet, TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { RouteProp } from '@react-navigation/native';
+import { StackScreenProps } from '@react-navigation/stack';
 import { RootStackParamList } from '../../App';
 
-type Props = {
-  navigation: StackNavigationProp<RootStackParamList, 'Result'>;
-  route: RouteProp<RootStackParamList, 'Result'>;
-};
+type Props = StackScreenProps<RootStackParamList, 'Result'>;
 
 function grade(pct: number) {
   if (pct === 100) return { emoji: '🥇', label: 'Perfect!', color: '#FFD700' };

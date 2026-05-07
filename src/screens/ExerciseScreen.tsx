@@ -3,17 +3,13 @@ import {
   View, Text, StyleSheet, Animated, Platform, TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { RouteProp } from '@react-navigation/native';
+import { StackScreenProps } from '@react-navigation/stack';
 import { RootStackParamList } from '../../App';
 import { useExercise } from '../hooks/useExercise';
 import NumPad from '../components/NumPad';
 import { useSettings } from '../context/SettingsContext';
 
-type Props = {
-  navigation: StackNavigationProp<RootStackParamList, 'Exercise'>;
-  route: RouteProp<RootStackParamList, 'Exercise'>;
-};
+type Props = StackScreenProps<RootStackParamList, 'Exercise'>;
 
 export default function ExerciseScreen({ navigation, route }: Props) {
   const { mode } = route.params;
