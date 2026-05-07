@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, Animated, Platform, TextInput,
 } from 'react-native';
@@ -17,16 +17,21 @@ type Props = {
 
 export default function ExerciseScreen({ navigation, route }: Props) {
   const { mode } = route.params;
-  const { testLength: TEST_LENGTH } = useSettings();
+  const { testLength: TEST_LENGTH, questionTimer } = useSettings();
   const {
     current, input, feedback, answered, done,
-    correctCount, appendDigit, backspace, submit, progress,
+    correctCount, appendDigit, backspace, submit, submitTimeout, progress,
   } = useExercise(mode, TEST_LENGTH);
 
   const shakeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const timerAnim = useRef(new Animated.Value(1)).current;
   const startTime = useRef(Date.now());
   const hiddenInputRef = useRef<TextInput>(null);
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  // Always-current ref so the timer setTimeout can call the latest submitTimeout
+  const submitTimeoutRef = useRef(submitTimeout);
+  useEffect(() => { submitTimeoutRef.current = submitTimeout; }, [submitTimeout]);
 
   // Keep hidden TextInput focused on native so hardware keyboard works
   useEffect(() => {
@@ -83,11 +88,47 @@ export default function ExerciseScreen({ navigation, route }: Props) {
     }
   }, [feedback]);
 
+  // Question timer countdown
+  useEffect(() => {
+    if (questionTimer === null || feedback) {
+      setTimeLeft(null);
+      return;
+    }
+    setTimeLeft(questionTimer);
+    timerAnim.setValue(1);
+    Animated.timing(timerAnim, {
+      toValue: 0,
+      duration: questionTimer * 1000,
+      useNativeDriver: false,
+    }).start();
+
+    const interval = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev === null) return null;
+        if (prev <= 1) return 0;
+        return prev - 1;
+      });
+    }, 1000);
+
+    const timeout = setTimeout(() => {
+      submitTimeoutRef.current();
+    }, questionTimer * 1000);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+      timerAnim.stopAnimation();
+    };
+  }, [current, feedback, questionTimer]);
+
   const bgColor = feedback === 'correct'
     ? '#E8FFF0'
     : feedback === 'wrong'
       ? '#FFE8E8'
       : '#F0EFFF';
+
+  const timerDanger = timeLeft !== null && questionTimer !== null && timeLeft <= Math.ceil(questionTimer * 0.3);
+  const timerColor = timerDanger ? '#E74C3C' : '#6C63FF';
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: bgColor }]}>
@@ -115,6 +156,23 @@ export default function ExerciseScreen({ navigation, route }: Props) {
           styles.questionCard,
           { transform: [{ translateX: shakeAnim }, { scale: scaleAnim }] },
         ]}>
+
+          {/* Timer bar inside card */}
+          {questionTimer !== null && (
+            <View style={styles.timerTrack}>
+              <Animated.View style={[
+                styles.timerFill,
+                {
+                  width: timerAnim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }),
+                  backgroundColor: timerColor,
+                },
+              ]} />
+              {timeLeft !== null && !feedback && (
+                <Text style={[styles.timerLabel, { color: timerColor }]}>{timeLeft}s</Text>
+              )}
+            </View>
+          )}
+
           <Text style={styles.questionText}>
             {current.a} × {current.b} = ?
           </Text>
@@ -219,6 +277,29 @@ const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 8,
     minHeight: 200,
+    overflow: 'hidden',
+  },
+  timerTrack: {
+    width: '120%',
+    height: 6,
+    backgroundColor: '#eee',
+    borderRadius: 3,
+    marginBottom: 16,
+    position: 'relative',
+    alignSelf: 'stretch',
+    marginHorizontal: -40,
+    overflow: 'hidden',
+  },
+  timerFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  timerLabel: {
+    position: 'absolute',
+    right: 8,
+    top: 9,
+    fontSize: 11,
+    fontWeight: '700',
   },
   questionText: {
     fontSize: 52,

@@ -9,6 +9,7 @@ import React from 'react';
 import { Platform } from 'react-native';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import ExerciseScreen from './ExerciseScreen';
+import { SettingsProvider, useSettings } from '../context/SettingsContext';
 
 jest.useFakeTimers();
 
@@ -23,9 +24,17 @@ function makeRoute(mode: 'training' | 'test') {
   return { params: { mode } } as any;
 }
 
-function renderExercise(mode: 'training' | 'test' = 'training') {
+interface RenderOptions {
+  mode?: 'training' | 'test';
+  questionTimer?: number | null;
+  testLength?: number;
+}
+
+function renderExercise({ mode = 'training', questionTimer = null, testLength = 5 }: RenderOptions = {}) {
   return render(
-    <ExerciseScreen navigation={mockNavigation} route={makeRoute(mode)} />,
+    <SettingsProvider initialTestLength={testLength} initialQuestionTimer={questionTimer}>
+      <ExerciseScreen navigation={mockNavigation} route={makeRoute(mode)} />
+    </SettingsProvider>,
   );
 }
 
@@ -35,7 +44,7 @@ describe('ExerciseScreen – native keyboard input', () => {
   beforeEach(() => { jest.clearAllMocks(); });
 
   it('appends a digit via onKeyPress on the hidden TextInput', () => {
-    const { getByTestId } = renderExercise('training');
+    const { getByTestId } = renderExercise();
     const hiddenInput = getByTestId('hidden-keyboard-input');
 
     act(() => { fireEvent(hiddenInput, 'keyPress', { nativeEvent: { key: '4' } }); });
@@ -44,7 +53,7 @@ describe('ExerciseScreen – native keyboard input', () => {
   });
 
   it('removes the last digit via onKeyPress Backspace', () => {
-    const { getByTestId } = renderExercise('training');
+    const { getByTestId } = renderExercise();
     const hiddenInput = getByTestId('hidden-keyboard-input');
 
     act(() => { fireEvent(hiddenInput, 'keyPress', { nativeEvent: { key: '6' } }); });
@@ -54,7 +63,7 @@ describe('ExerciseScreen – native keyboard input', () => {
   });
 
   it('submits via onSubmitEditing and shows feedback', () => {
-    const { getByTestId, queryByText } = renderExercise('training');
+    const { getByTestId, queryByText } = renderExercise();
     const hiddenInput = getByTestId('hidden-keyboard-input');
 
     act(() => { fireEvent(hiddenInput, 'keyPress', { nativeEvent: { key: '1' } }); });
@@ -74,7 +83,7 @@ describe('ExerciseScreen – native keyboard input', () => {
   });
 
   it('ignores non-digit / non-backspace keys', () => {
-    const { getByTestId } = renderExercise('training');
+    const { getByTestId } = renderExercise();
     const hiddenInput = getByTestId('hidden-keyboard-input');
 
     act(() => { fireEvent(hiddenInput, 'keyPress', { nativeEvent: { key: 'a' } }); });
@@ -84,7 +93,7 @@ describe('ExerciseScreen – native keyboard input', () => {
   });
 
   it('does not append digits while feedback is showing', () => {
-    const { getByTestId } = renderExercise('training');
+    const { getByTestId } = renderExercise();
     const hiddenInput = getByTestId('hidden-keyboard-input');
 
     act(() => { fireEvent(hiddenInput, 'keyPress', { nativeEvent: { key: '1' } }); });
@@ -152,26 +161,26 @@ describe('ExerciseScreen – web keyboard input', () => {
   }
 
   it('appends a digit when a number key is pressed', () => {
-    const { getByTestId } = renderExercise('training');
+    const { getByTestId } = renderExercise();
     fireKey('7');
     expect(getByTestId('input-display').props.children).toBe('7');
   });
 
   it('caps input at 3 digits via keyboard', () => {
-    const { getByTestId } = renderExercise('training');
+    const { getByTestId } = renderExercise();
     fireKey('1'); fireKey('2'); fireKey('3'); fireKey('4');
     expect(getByTestId('input-display').props.children).toBe('123');
   });
 
   it('removes the last digit on Backspace key', () => {
-    const { getByTestId } = renderExercise('training');
+    const { getByTestId } = renderExercise();
     fireKey('5');
     fireKey('Backspace');
     expect(getByTestId('input-display').props.children).toBe('…');
   });
 
   it('submits on Enter key and shows feedback', () => {
-    const { queryByText } = renderExercise('training');
+    const { queryByText } = renderExercise();
     fireKey('3');
     act(() => {
       windowMock.dispatchEvent({ type: 'keydown', key: 'Enter' } as any);
@@ -183,13 +192,99 @@ describe('ExerciseScreen – web keyboard input', () => {
   });
 
   it('registers the keydown listener on mount', () => {
-    renderExercise('training');
+    renderExercise();
     expect(windowMock.addEventListener).toHaveBeenCalledWith('keydown', expect.any(Function));
   });
 
   it('removes the keydown listener on unmount', () => {
-    const { unmount } = renderExercise('training');
+    const { unmount } = renderExercise();
     unmount();
     expect(windowMock.removeEventListener).toHaveBeenCalledWith('keydown', expect.any(Function));
+  });
+});
+
+// ---------- question timer ----------
+
+describe('ExerciseScreen – question timer', () => {
+  beforeEach(() => { jest.clearAllMocks(); });
+
+  it('auto-submits as wrong when the timer expires with no input', () => {
+    const { getByTestId } = renderExercise({ mode: 'training', questionTimer: 5 });
+
+    // No digit entered — let the 5-second timer fire, then feedback auto-clear
+    act(() => {
+      jest.advanceTimersByTime(5000); // submitTimeout fires → wrong feedback
+      jest.advanceTimersByTime(1200); // training auto-clear
+    });
+
+    // Input reset to placeholder after auto-advance
+    expect(getByTestId('input-display').props.children).toBe('…');
+  });
+
+  it('auto-submits as wrong when the timer expires mid-answer', () => {
+    const { getByTestId } = renderExercise({ mode: 'training', questionTimer: 5 });
+    const hiddenInput = getByTestId('hidden-keyboard-input');
+
+    act(() => { fireEvent(hiddenInput, 'keyPress', { nativeEvent: { key: '1' } }); });
+    expect(getByTestId('input-display').props.children).toBe('1');
+
+    // Timer fires → submitTimeout records as wrong → auto-advance after 1200 ms
+    act(() => {
+      jest.advanceTimersByTime(5000);
+      jest.advanceTimersByTime(1200);
+    });
+
+    expect(getByTestId('input-display').props.children).toBe('…');
+  });
+
+  it('resets the timer when a new question appears', () => {
+    const { getByTestId } = renderExercise({ mode: 'training', questionTimer: 5 });
+    const hiddenInput = getByTestId('hidden-keyboard-input');
+
+    // Answer one question manually (wrong), wait for feedback to clear
+    act(() => { fireEvent(hiddenInput, 'keyPress', { nativeEvent: { key: '1' } }); });
+    act(() => {
+      fireEvent(hiddenInput, 'submitEditing');
+      jest.advanceTimersByTime(1200);
+    });
+
+    // On the new question, no auto-submit yet — advance 4 s (< 5 s)
+    act(() => { jest.advanceTimersByTime(4000); });
+    // Input should still be at placeholder (no auto-submit fired yet)
+    expect(getByTestId('input-display').props.children).toBe('…');
+  });
+
+  it('does NOT auto-submit when timer is disabled (null)', () => {
+    const { getByTestId } = renderExercise({ mode: 'training', questionTimer: null });
+    const hiddenInput = getByTestId('hidden-keyboard-input');
+
+    act(() => { fireEvent(hiddenInput, 'keyPress', { nativeEvent: { key: '3' } }); });
+
+    // Advance far past any timer — nothing should happen automatically
+    act(() => { jest.advanceTimersByTime(60000); });
+
+    // Input still holds '3' — no auto-submit occurred
+    expect(getByTestId('input-display').props.children).toBe('3');
+  });
+
+  it('each question gets a fresh timer (timer resets when question changes)', () => {
+    // Verify that after manually answering a question, the timer for the next
+    // question behaves independently — 4 s in should not yet have auto-submitted.
+    const { getByTestId } = renderExercise({ mode: 'training', questionTimer: 5 });
+    const hiddenInput = getByTestId('hidden-keyboard-input');
+
+    // Answer one question manually (wrong input + submit) → feedback → auto-clear
+    act(() => { fireEvent(hiddenInput, 'keyPress', { nativeEvent: { key: '1' } }); });
+    act(() => {
+      fireEvent(hiddenInput, 'submitEditing'); // manual submit
+      jest.advanceTimersByTime(1200);          // training feedback auto-clear
+    });
+
+    // Now on the new question, type a digit
+    act(() => { fireEvent(hiddenInput, 'keyPress', { nativeEvent: { key: '3' } }); });
+    // Advance 4 s — less than the 5 s timer, so no auto-submit yet
+    act(() => { jest.advanceTimersByTime(4000); });
+    // Input should still show '3' — no auto-submit fired
+    expect(getByTestId('input-display').props.children).toBe('3');
   });
 });

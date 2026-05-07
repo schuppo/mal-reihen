@@ -68,6 +68,35 @@ export function useExercise(mode: 'training' | 'test', testLength = 20) {
     }
   }, [input, feedback, current, mode, answered, testLength]);
 
+  /** Called by the question timer when time runs out — always records as wrong. */
+  const submitTimeout = useCallback(() => {
+    if (feedback) return;
+    const record: AnsweredQuestion = { ...current, userAnswer: -1, correct: false };
+
+    if (mode === 'training') {
+      setFeedback('wrong');
+      setAnswered(prev => [...prev, record]);
+      setTimeout(() => {
+        setFeedback(null);
+        setInput('');
+        setCurrent(generateQuestion());
+      }, 1200);
+    } else {
+      const next = [...answered, record];
+      setAnswered(next);
+      setFeedback('wrong');
+      setTimeout(() => {
+        if (next.length >= testLength) {
+          setDone(true);
+        } else {
+          setFeedback(null);
+          setInput('');
+          setCurrent(generateQuestion());
+        }
+      }, 800);
+    }
+  }, [feedback, current, mode, answered, testLength]);
+
   const correctCount = answered.filter(q => q.correct).length;
 
   return {
@@ -80,6 +109,7 @@ export function useExercise(mode: 'training' | 'test', testLength = 20) {
     appendDigit,
     backspace,
     submit,
+    submitTimeout,
     progress: mode === 'test' ? answered.length / testLength : null,
   };
 }

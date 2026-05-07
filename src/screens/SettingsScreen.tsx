@@ -6,18 +6,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSettings } from '../context/SettingsContext';
 
 const LENGTH_OPTIONS = [5, 10, 15, 20, 25, 30];
+const TIMER_OPTIONS = [5, 8, 10, 15, 20, 30];
 
 export default function SettingsScreen() {
-  const { testLength, setTestLength } = useSettings();
+  const { testLength, setTestLength, questionTimer, setQuestionTimer } = useSettings();
 
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
-        <Text style={styles.sectionTitle}>Test Length</Text>
-        <Text style={styles.sectionDesc}>
-          How many questions per test?
-        </Text>
 
+        {/* ── Test Length ── */}
+        <Text style={styles.sectionTitle}>Test Length</Text>
+        <Text style={styles.sectionDesc}>How many questions per test?</Text>
         <View style={styles.grid}>
           {LENGTH_OPTIONS.map(n => {
             const selected = n === testLength;
@@ -28,17 +28,56 @@ export default function SettingsScreen() {
                 onPress={() => setTestLength(n)}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
-                  {n}
-                </Text>
+                <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{n}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+        <Text style={styles.hint}>
+          Currently set to <Text style={styles.hintBold}>{testLength} questions</Text>
+        </Text>
+
+        <View style={styles.separator} />
+
+        {/* ── Question Timer ── */}
+        <Text style={styles.sectionTitle}>Question Timer</Text>
+        <Text style={styles.sectionDesc}>
+          Auto-submit as wrong when time runs out. Off = no limit.
+        </Text>
+
+        {/* Off chip */}
+        <View style={styles.grid}>
+          <TouchableOpacity
+            style={[styles.chip, styles.chipWide, questionTimer === null && styles.chipSelected]}
+            onPress={() => setQuestionTimer(null)}
+            activeOpacity={0.8}
+          >
+            <Text style={[styles.chipText, questionTimer === null && styles.chipTextSelected]}>
+              Off
+            </Text>
+          </TouchableOpacity>
+
+          {TIMER_OPTIONS.map(s => {
+            const selected = s === questionTimer;
+            return (
+              <TouchableOpacity
+                key={s}
+                style={[styles.chip, selected && styles.chipSelected]}
+                onPress={() => setQuestionTimer(s)}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{s}s</Text>
               </TouchableOpacity>
             );
           })}
         </View>
 
         <Text style={styles.hint}>
-          Currently set to <Text style={styles.hintBold}>{testLength} questions</Text>
+          {questionTimer === null
+            ? <Text style={styles.hintBold}>No time limit</Text>
+            : <>Timer set to <Text style={styles.hintBold}>{questionTimer} seconds</Text> per question</>}
         </Text>
+
       </View>
     </SafeAreaView>
   );
@@ -61,7 +100,7 @@ const styles = StyleSheet.create({
   sectionDesc: {
     fontSize: 15,
     color: '#777',
-    marginBottom: 28,
+    marginBottom: 20,
   },
   grid: {
     flexDirection: 'row',
@@ -83,12 +122,15 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 3,
   },
+  chipWide: {
+    width: 100,
+  },
   chipSelected: {
     backgroundColor: '#6C63FF',
     borderColor: '#6C63FF',
   },
   chipText: {
-    fontSize: 26,
+    fontSize: 22,
     fontWeight: '800',
     color: '#555',
   },
@@ -96,12 +138,18 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   hint: {
-    marginTop: 32,
+    marginTop: 16,
+    marginBottom: 4,
     fontSize: 14,
     color: '#999',
   },
   hintBold: {
     color: '#6C63FF',
     fontWeight: '800',
+  },
+  separator: {
+    height: 1,
+    backgroundColor: '#ddd',
+    marginVertical: 28,
   },
 });

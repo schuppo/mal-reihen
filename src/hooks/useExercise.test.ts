@@ -172,3 +172,59 @@ describe('useExercise – test mode', () => {
     expect(result.current.answered).toHaveLength(2);
   });
 });
+
+describe('useExercise – submitTimeout', () => {
+  it('records a wrong answer even with empty input (training)', () => {
+    const { result } = renderHook(() => useExercise('training'));
+    act(() => { result.current.submitTimeout(); });
+    expect(result.current.feedback).toBe('wrong');
+    expect(result.current.answered).toHaveLength(1);
+    expect(result.current.answered[0].correct).toBe(false);
+    expect(result.current.answered[0].userAnswer).toBe(-1);
+  });
+
+  it('does nothing if feedback is already showing', () => {
+    const { result } = renderHook(() => useExercise('training'));
+    act(() => { result.current.submitTimeout(); });
+    expect(result.current.feedback).toBe('wrong');
+    act(() => { result.current.submitTimeout(); }); // called again while feedback active
+    expect(result.current.answered).toHaveLength(1); // still only 1
+  });
+
+  it('advances to next question after 1200 ms in training mode', () => {
+    const { result } = renderHook(() => useExercise('training'));
+    act(() => { result.current.submitTimeout(); });
+    act(() => { jest.advanceTimersByTime(1200); });
+    expect(result.current.feedback).toBeNull();
+    expect(result.current.input).toBe('');
+  });
+
+  it('records wrong in test mode and advances after 800 ms', () => {
+    const { result } = renderHook(() => useExercise('test', 3));
+    act(() => { result.current.submitTimeout(); });
+    expect(result.current.feedback).toBe('wrong');
+    expect(result.current.answered[0].correct).toBe(false);
+    act(() => { jest.advanceTimersByTime(800); });
+    expect(result.current.feedback).toBeNull();
+    expect(result.current.answered).toHaveLength(1);
+  });
+
+  it('marks done after testLength timeouts in test mode', () => {
+    const testLength = 2;
+    const { result } = renderHook(() => useExercise('test', testLength));
+    for (let i = 0; i < testLength; i++) {
+      act(() => { result.current.submitTimeout(); });
+      act(() => { jest.advanceTimersByTime(800); });
+    }
+    expect(result.current.done).toBe(true);
+  });
+
+  it('clears partial input before showing wrong feedback', () => {
+    const { result } = renderHook(() => useExercise('training'));
+    act(() => { result.current.appendDigit('4'); });
+    expect(result.current.input).toBe('4');
+    act(() => { result.current.submitTimeout(); });
+    act(() => { jest.advanceTimersByTime(1200); });
+    expect(result.current.input).toBe('');
+  });
+});
