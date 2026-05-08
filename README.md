@@ -85,8 +85,10 @@ You have two options — Expo Go (quick, no Apple account required) or a native 
 
 This creates a proper `.ipa` that installs directly on your device via TestFlight or direct sideloading.
 
+> ⚠️ **Apple Developer membership required.** EAS cloud builds require an **active paid Apple Developer Program membership** ($99/year). If your account does not have an active membership, `eas build` will fail with a 403 error. Sign up at [developer.apple.com/enroll](https://developer.apple.com/enroll).
+
 **Prerequisites**
-- An [Apple Developer account](https://developer.apple.com) (free account works for sideloading; paid account required for TestFlight)
+- An active [Apple Developer Program membership](https://developer.apple.com/enroll) (paid, $99/year)
 - Xcode installed on your Mac
 - EAS CLI: `npm install -g eas-cli`
 
@@ -112,12 +114,24 @@ This creates a proper `.ipa` that installs directly on your device via TestFligh
 
 > **Tip:** For a quick local build without EAS Cloud, run `npm run ios` and choose your connected physical device as the target in the Xcode scheme selector.
 
+### Troubleshooting iOS builds
+
+**`No iOS devices available in Simulator.app`**
+No simulator runtime is installed. Open **Xcode → Settings → Platforms** and download an iOS runtime (e.g. iOS 18, ~7 GB), then re-run `npm run ios`.
+
+**Swift compile errors in `ExpoReactNativeFactory.swift` or `EXReactRootViewFactory.mm`**
+The `ios/Pods` directory is out of sync with `node_modules`. Delete and regenerate:
+```bash
+cd ios && rm -rf Pods Podfile.lock && pod install
+```
+Then run `npm run ios` again.
+
 ## Tech Stack
 
 | Library | Purpose |
 |---|---|
 | Expo 55 | Build tooling & native runtime |
-| React Native 0.85 | Cross-platform UI |
+| React Native 0.83 | Cross-platform UI |
 | React Navigation (Stack) | Screen navigation |
 | react-native-web | Browser support |
 

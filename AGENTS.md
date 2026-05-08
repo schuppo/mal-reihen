@@ -73,6 +73,18 @@ npm test           # Run Jest test suite
 
 TypeScript checking: `npx tsc --noEmit`.
 
+### iOS build prerequisites
+
+- Xcode with at least one iOS Simulator runtime installed (**Xcode → Settings → Platforms**). Without a runtime `npm run ios` fails with `No iOS devices available in Simulator.app`.
+- If you see Swift compile errors in `ExpoReactNativeFactory.swift` or `EXReactRootViewFactory.mm`, the Pods are out of sync with `node_modules`. Fix with:
+  ```bash
+  cd ios && rm -rf Pods Podfile.lock && pod install
+  ```
+
+### EAS cloud builds (physical device)
+
+Requires an **active paid Apple Developer Program membership** ($99/year). Without one `eas build` fails with a 403 "not associated with an active membership" error. See [developer.apple.com/enroll](https://developer.apple.com/enroll).
+
 ## Testing
 
 **TDD is mandatory.** All new logic must be covered by tests written before or alongside implementation.
