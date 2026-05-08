@@ -6,16 +6,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StackScreenProps } from '@react-navigation/stack';
 import { RootStackParamList } from '../../App';
 import { useSettings } from '../context/SettingsContext';
+import { useTranslations } from '../i18n/translations';
 
 type Props = StackScreenProps<RootStackParamList, 'Home'>;
 
 export default function HomeScreen({ navigation }: Props) {
-  const { testLength } = useSettings();
+  const { testLength, language } = useSettings();
+  const t = useTranslations(language);
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
-        <Text style={styles.title}>✖️ Times Rows</Text>
-        <Text style={styles.subtitle}>Master the multiplication tables{'\n'}from 1 × 1 to 10 × 10</Text>
+        <Text style={styles.title}>{t.appTitle}</Text>
+        <Text style={styles.subtitle}>{t.appSubtitle}</Text>
 
         <View style={styles.cards}>
           <TouchableOpacity
@@ -24,10 +26,8 @@ export default function HomeScreen({ navigation }: Props) {
             activeOpacity={0.85}
           >
             <Text style={styles.cardEmoji}>🎓</Text>
-            <Text style={styles.cardTitle}>Training</Text>
-            <Text style={styles.cardDesc}>
-              Practice at your own pace.{'\n'}Instant right/wrong feedback.
-            </Text>
+            <Text style={styles.cardTitle}>{t.trainingTitle}</Text>
+            <Text style={styles.cardDesc}>{t.trainingDesc}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -36,14 +36,12 @@ export default function HomeScreen({ navigation }: Props) {
             activeOpacity={0.85}
           >
             <Text style={styles.cardEmoji}>🏆</Text>
-            <Text style={styles.cardTitle}>Test</Text>
-            <Text style={styles.cardDesc}>
-              {testLength} questions, timed.{'\n'}Get your final score!
-            </Text>
+            <Text style={styles.cardTitle}>{t.testTitle}</Text>
+            <Text style={styles.cardDesc}>{t.testDesc(testLength)}</Text>
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.hint}>Tap a card to begin</Text>
+        <Text style={styles.hint}>{t.tapToBegin}</Text>
       </View>
     </SafeAreaView>
   );

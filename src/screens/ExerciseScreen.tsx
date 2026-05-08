@@ -8,12 +8,14 @@ import { RootStackParamList } from '../../App';
 import { useExercise } from '../hooks/useExercise';
 import NumPad from '../components/NumPad';
 import { useSettings } from '../context/SettingsContext';
+import { useTranslations } from '../i18n/translations';
 
 type Props = StackScreenProps<RootStackParamList, 'Exercise'>;
 
 export default function ExerciseScreen({ navigation, route }: Props) {
   const { mode, tableFilter } = route.params;
-  const { testLength: TEST_LENGTH, questionTimer, showCorrectAnswer } = useSettings();
+  const { testLength: TEST_LENGTH, questionTimer, showCorrectAnswer, language } = useSettings();
+  const t = useTranslations(language);
   const {
     current, input, feedback, answered, done,
     correctCount, appendDigit, backspace, submit, submitTimeout, progress,
@@ -193,10 +195,10 @@ export default function ExerciseScreen({ navigation, route }: Props) {
               feedback === 'correct' ? styles.correctText : styles.wrongText,
             ]}>
               {feedback === 'correct'
-                ? '🎉 Correct!'
+                ? t.feedbackCorrect
                 : showCorrectAnswer
-                  ? `❌ ${current.a} × ${current.b} = ${current.answer}`
-                  : '❌ Wrong!'}
+                  ? t.feedbackWrongWithAnswer(current.a, current.b, current.answer)
+                  : t.feedbackWrong}
             </Text>
           )}
         </Animated.View>

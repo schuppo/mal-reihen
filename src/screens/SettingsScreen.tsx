@@ -4,20 +4,22 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSettings } from '../context/SettingsContext';
+import { useTranslations } from '../i18n/translations';
 
 const LENGTH_OPTIONS = [5, 10, 15, 20, 25, 30];
 const TIMER_OPTIONS = [5, 8, 10, 15, 20, 30];
 
 export default function SettingsScreen() {
-  const { testLength, setTestLength, questionTimer, setQuestionTimer, showCorrectAnswer, setShowCorrectAnswer } = useSettings();
+  const { testLength, setTestLength, questionTimer, setQuestionTimer, showCorrectAnswer, setShowCorrectAnswer, language, setLanguage } = useSettings();
+  const t = useTranslations(language);
 
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
 
         {/* ── Test Length ── */}
-        <Text style={styles.sectionTitle}>Test Length</Text>
-        <Text style={styles.sectionDesc}>How many questions per test?</Text>
+        <Text style={styles.sectionTitle}>{t.settingsTestLength}</Text>
+        <Text style={styles.sectionDesc}>{t.settingsTestLengthDesc}</Text>
         <View style={styles.grid}>
           {LENGTH_OPTIONS.map(n => {
             const selected = n === testLength;
@@ -34,15 +36,15 @@ export default function SettingsScreen() {
           })}
         </View>
         <Text style={styles.hint}>
-          Currently set to <Text style={styles.hintBold}>{testLength} questions</Text>
+          {t.settingsTestLengthHint(testLength)}
         </Text>
 
         <View style={styles.separator} />
 
         {/* ── Question Timer ── */}
-        <Text style={styles.sectionTitle}>Question Timer</Text>
+        <Text style={styles.sectionTitle}>{t.settingsTimer}</Text>
         <Text style={styles.sectionDesc}>
-          Auto-submit as wrong when time runs out. Off = no limit.
+          {t.settingsTimerDesc}
         </Text>
 
         {/* Off chip */}
@@ -53,7 +55,7 @@ export default function SettingsScreen() {
             activeOpacity={0.8}
           >
             <Text style={[styles.chipText, questionTimer === null && styles.chipTextSelected]}>
-              Off
+              {t.settingsTimerOff}
             </Text>
           </TouchableOpacity>
 
@@ -74,8 +76,8 @@ export default function SettingsScreen() {
 
         <Text style={styles.hint}>
           {questionTimer === null
-            ? <Text style={styles.hintBold}>No time limit</Text>
-            : <>Timer set to <Text style={styles.hintBold}>{questionTimer} seconds</Text> per question</>}
+            ? <Text style={styles.hintBold}>{t.settingsTimerHintOff}</Text>
+            : <Text style={styles.hintBold}>{t.settingsTimerHint(questionTimer)}</Text>}
         </Text>
 
         <View style={styles.separator} />
@@ -83,9 +85,9 @@ export default function SettingsScreen() {
         {/* ── Show Correct Answer ── */}
         <View style={styles.toggleRow}>
           <View style={styles.toggleLabel}>
-            <Text style={styles.sectionTitle}>Show Correct Answer</Text>
+            <Text style={styles.sectionTitle}>{t.settingsShowCorrect}</Text>
             <Text style={styles.sectionDesc}>
-              Reveal the right answer when a wrong answer is given.
+              {t.settingsShowCorrectDesc}
             </Text>
           </View>
           <Switch
@@ -95,6 +97,31 @@ export default function SettingsScreen() {
             thumbColor="#fff"
             testID="show-correct-answer-switch"
           />
+        </View>
+
+        <View style={styles.separator} />
+
+        {/* ── Language ── */}
+        <Text style={styles.sectionTitle}>{t.settingsLanguage}</Text>
+        <Text style={styles.sectionDesc}>{t.settingsLanguageDesc}</Text>
+        <View style={styles.grid}>
+          {(['en', 'de'] as const).map(lang => {
+            const selected = lang === language;
+            const label = lang === 'en' ? t.settingsLangEn : t.settingsLangDe;
+            return (
+              <TouchableOpacity
+                key={lang}
+                style={[styles.chip, styles.chipLang, selected && styles.chipSelected]}
+                onPress={() => setLanguage(lang)}
+                activeOpacity={0.8}
+                testID={`language-chip-${lang}`}
+              >
+                <Text style={[styles.chipText, styles.chipTextLang, selected && styles.chipTextSelected]}>
+                  {label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </View>
     </SafeAreaView>
@@ -142,6 +169,13 @@ const styles = StyleSheet.create({
   },
   chipWide: {
     width: 100,
+  },
+  chipLang: {
+    width: 140,
+    height: 56,
+  },
+  chipTextLang: {
+    fontSize: 16,
   },
   chipSelected: {
     backgroundColor: '#6C63FF',

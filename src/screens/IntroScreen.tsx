@@ -6,20 +6,22 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StackScreenProps } from '@react-navigation/stack';
 import { RootStackParamList } from '../../App';
 import { useSettings } from '../context/SettingsContext';
+import { useTranslations } from '../i18n/translations';
 
 type Props = StackScreenProps<RootStackParamList, 'Intro'>;
 
 const NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 export default function IntroScreen({ navigation }: Props) {
-  const { testLength } = useSettings();
+  const { testLength, language } = useSettings();
+  const t = useTranslations(language);
   const [selected, setSelected] = useState<number | 'all'>('all');
 
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Choose a Table</Text>
-        <Text style={styles.subtitle}>Practice one number or all at once</Text>
+        <Text style={styles.title}>{t.chooseTable}</Text>
+        <Text style={styles.subtitle}>{t.chooseTableSubtitle}</Text>
 
         {/* Number selector */}
         <View style={styles.grid}>
@@ -29,7 +31,7 @@ export default function IntroScreen({ navigation }: Props) {
             activeOpacity={0.8}
           >
             <Text style={[styles.chipText, selected === 'all' && styles.chipTextSelected]}>
-              All
+              {t.all}
             </Text>
           </TouchableOpacity>
           {NUMBERS.map(n => (
@@ -60,10 +62,8 @@ export default function IntroScreen({ navigation }: Props) {
             activeOpacity={0.85}
           >
             <Text style={styles.cardEmoji}>🎓</Text>
-            <Text style={styles.cardTitle}>Training</Text>
-            <Text style={styles.cardDesc}>
-              Practice at your own pace.{'\n'}Instant right/wrong feedback.
-            </Text>
+            <Text style={styles.cardTitle}>{t.trainingTitle}</Text>
+            <Text style={styles.cardDesc}>{t.trainingDesc}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -72,10 +72,8 @@ export default function IntroScreen({ navigation }: Props) {
             activeOpacity={0.85}
           >
             <Text style={styles.cardEmoji}>🏆</Text>
-            <Text style={[styles.cardTitle, styles.testCardTitle]}>Test</Text>
-            <Text style={[styles.cardDesc, styles.testCardDesc]}>
-              {testLength} questions, timed.{'\n'}Get your final score!
-            </Text>
+            <Text style={[styles.cardTitle, styles.testCardTitle]}>{t.testTitle}</Text>
+            <Text style={[styles.cardDesc, styles.testCardDesc]}>{t.testDesc(testLength)}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

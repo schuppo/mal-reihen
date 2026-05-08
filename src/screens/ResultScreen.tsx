@@ -5,14 +5,16 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StackScreenProps } from '@react-navigation/stack';
 import { RootStackParamList } from '../../App';
+import { useSettings } from '../context/SettingsContext';
+import { useTranslations } from '../i18n/translations';
 
 type Props = StackScreenProps<RootStackParamList, 'Result'>;
 
-function grade(pct: number) {
-  if (pct === 100) return { emoji: '🥇', label: 'Perfect!', color: '#FFD700' };
-  if (pct >= 80) return { emoji: '🥈', label: 'Great job!', color: '#6C63FF' };
-  if (pct >= 60) return { emoji: '🥉', label: 'Good effort!', color: '#FF9F43' };
-  return { emoji: '📚', label: 'Keep practicing!', color: '#E74C3C' };
+function grade(pct: number, t: ReturnType<typeof useTranslations>) {
+  if (pct === 100) return { emoji: '🥇', label: t.gradePerfect, color: '#FFD700' };
+  if (pct >= 80) return { emoji: '🥈', label: t.gradeGreat, color: '#6C63FF' };
+  if (pct >= 60) return { emoji: '🥉', label: t.gradeGood, color: '#FF9F43' };
+  return { emoji: '📚', label: t.gradeKeep, color: '#E74C3C' };
 }
 
 function formatTime(s: number) {
@@ -23,8 +25,10 @@ function formatTime(s: number) {
 
 export default function ResultScreen({ navigation, route }: Props) {
   const { correct, total, timeSeconds } = route.params;
+  const { language } = useSettings();
+  const t = useTranslations(language);
   const pct = Math.round((correct / total) * 100);
-  const { emoji, label, color } = grade(pct);
+  const { emoji, label, color } = grade(pct, t);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -38,22 +42,22 @@ export default function ResultScreen({ navigation, route }: Props) {
             <Text style={styles.scoreDivider}>/</Text>
             <Text style={styles.scoreTotal}>{total}</Text>
           </View>
-          <Text style={styles.scoreSubtext}>correct answers</Text>
+          <Text style={styles.scoreSubtext}>{t.correctAnswers}</Text>
 
           <View style={styles.divider} />
 
           <View style={styles.statsRow}>
             <View style={styles.stat}>
               <Text style={styles.statNum}>{pct}%</Text>
-              <Text style={styles.statLabel}>Score</Text>
+              <Text style={styles.statLabel}>{t.score}</Text>
             </View>
             <View style={styles.stat}>
               <Text style={styles.statNum}>{formatTime(timeSeconds)}</Text>
-              <Text style={styles.statLabel}>Time</Text>
+              <Text style={styles.statLabel}>{t.time}</Text>
             </View>
             <View style={styles.stat}>
               <Text style={styles.statNum}>{total - correct}</Text>
-              <Text style={styles.statLabel}>Mistakes</Text>
+              <Text style={styles.statLabel}>{t.mistakes}</Text>
             </View>
           </View>
         </View>
@@ -62,14 +66,14 @@ export default function ResultScreen({ navigation, route }: Props) {
           style={[styles.btn, { backgroundColor: color }]}
           onPress={() => navigation.replace('Intro')}
         >
-          <Text style={styles.btnText}>🔁 Try Again</Text>
+          <Text style={styles.btnText}>{t.tryAgain}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.homeBtn}
           onPress={() => navigation.popToTop()}
         >
-          <Text style={styles.homeBtnText}>🏠 Home</Text>
+          <Text style={styles.homeBtnText}>{t.home}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
