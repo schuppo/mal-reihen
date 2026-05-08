@@ -1,6 +1,6 @@
 import 'react-native-gesture-handler';
 import React from 'react';
-import { TouchableOpacity, Text } from 'react-native';
+import { TouchableOpacity, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
@@ -11,14 +11,16 @@ import IntroScreen from './src/screens/IntroScreen';
 import ExerciseScreen from './src/screens/ExerciseScreen';
 import ResultScreen from './src/screens/ResultScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import ScoreboardScreen from './src/screens/ScoreboardScreen';
 import { SettingsProvider } from './src/context/SettingsContext';
 
 export type RootStackParamList = {
   Home: undefined;
   Intro: undefined;
   Exercise: { mode: 'training' | 'test'; tableFilter: number | 'all' };
-  Result: { correct: number; total: number; timeSeconds: number };
+  Result: { correct: number; total: number; timeSeconds: number; mode: 'training' | 'test'; tableFilter: number | 'all' };
   Settings: undefined;
+  Scoreboard: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -44,12 +46,14 @@ export default function App() {
                 options={({ navigation }) => ({
                   title: '✖️ Times Rows',
                   headerRight: () => (
-                    <TouchableOpacity
-                      onPress={() => navigation.navigate('Settings')}
-                      style={{ marginRight: 16 }}
-                    >
-                      <Text style={{ fontSize: 24 }}>⚙️</Text>
-                    </TouchableOpacity>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 16, gap: 8 }}>
+                      <TouchableOpacity onPress={() => navigation.navigate('Scoreboard')}>
+                        <Text style={{ fontSize: 24 }}>🏅</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+                        <Text style={{ fontSize: 24 }}>⚙️</Text>
+                      </TouchableOpacity>
+                    </View>
                   ),
                 })}
               />
@@ -59,12 +63,14 @@ export default function App() {
                 options={({ navigation }) => ({
                   title: '✖️ Times Rows',
                   headerRight: () => (
-                    <TouchableOpacity
-                      onPress={() => navigation.navigate('Settings')}
-                      style={{ marginRight: 16 }}
-                    >
-                      <Text style={{ fontSize: 24 }}>⚙️</Text>
-                    </TouchableOpacity>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 16, gap: 8 }}>
+                      <TouchableOpacity onPress={() => navigation.navigate('Scoreboard')}>
+                        <Text style={{ fontSize: 24 }}>🏅</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+                        <Text style={{ fontSize: 24 }}>⚙️</Text>
+                      </TouchableOpacity>
+                    </View>
                   ),
                 })}
               />
@@ -73,6 +79,7 @@ export default function App() {
               })} />
               <Stack.Screen name="Result" component={ResultScreen} options={{ title: '🏆 Results', headerLeft: () => null }} />
               <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: '⚙️ Settings' }} />
+              <Stack.Screen name="Scoreboard" component={ScoreboardScreen} options={{ title: '🏅 Scoreboard' }} />
             </Stack.Navigator>
           </NavigationContainer>
         </SettingsProvider>

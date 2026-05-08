@@ -49,7 +49,7 @@ function setupHook(feedback: 'correct' | 'wrong' | null) {
 
 function renderExercise(showCorrectAnswer: boolean) {
   return render(
-    <SettingsProvider initialShowCorrectAnswer={showCorrectAnswer}>
+    <SettingsProvider initialShowCorrectAnswer={showCorrectAnswer} initialLanguage="en">
       <ExerciseScreen navigation={mockNavigation} route={makeRoute()} />
     </SettingsProvider>,
   );

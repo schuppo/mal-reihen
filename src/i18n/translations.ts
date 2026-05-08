@@ -38,6 +38,15 @@ export interface Translations {
   settingsLanguageDesc: string;
   settingsLangEn: string;
   settingsLangDe: string;
+  // ScoreboardScreen
+  scoreboardTitle: string;
+  scoreboardEmpty: string;
+  scoreboardTimePerAnswer: string;
+  scoreboardClearAll: string;
+  scoreboardClearConfirm: string;
+  scoreboardModeTest: string;
+  scoreboardModeTraining: string;
+  scoreboardTableAll: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -88,6 +97,15 @@ const translations: Record<Language, Translations> = {
     settingsLanguageDesc: 'Choose the app language.',
     settingsLangEn: '🇬🇧 English',
     settingsLangDe: '🇩🇪 Deutsch',
+    // ScoreboardScreen
+    scoreboardTitle: '🏅 Scoreboard',
+    scoreboardEmpty: 'No test results yet.\nComplete a test to see your scores here!',
+    scoreboardTimePerAnswer: 'Time/Answer',
+    scoreboardClearAll: 'Clear All',
+    scoreboardClearConfirm: 'Are you sure you want to delete all scores?',
+    scoreboardModeTest: '🏆 Test',
+    scoreboardModeTraining: '🎓 Training',
+    scoreboardTableAll: 'All',
   },
   de: {
     // HomeScreen
@@ -136,6 +154,15 @@ const translations: Record<Language, Translations> = {
     settingsLanguageDesc: 'App-Sprache auswählen.',
     settingsLangEn: '🇬🇧 English',
     settingsLangDe: '🇩🇪 Deutsch',
+    // ScoreboardScreen
+    scoreboardTitle: '🏅 Bestenliste',
+    scoreboardEmpty: 'Noch keine Ergebnisse.\nMach einen Test, um Punkte zu sammeln!',
+    scoreboardTimePerAnswer: 'Zeit/Frage',
+    scoreboardClearAll: 'Alle löschen',
+    scoreboardClearConfirm: 'Alle Ergebnisse wirklich löschen?',
+    scoreboardModeTest: '🏆 Test',
+    scoreboardModeTraining: '🎓 Training',
+    scoreboardTableAll: 'Alle',
   },
 } as const;
 

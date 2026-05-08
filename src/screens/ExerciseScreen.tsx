@@ -63,6 +63,8 @@ export default function ExerciseScreen({ navigation, route }: Props) {
         correct: correctCount,
         total: TEST_LENGTH,
         timeSeconds: elapsed,
+        mode,
+        tableFilter,
       });
     }
   }, [done]);

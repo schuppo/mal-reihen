@@ -19,7 +19,7 @@ const SettingsContext = createContext<SettingsContextValue>({
   setQuestionTimer: () => {},
   showCorrectAnswer: false,
   setShowCorrectAnswer: () => {},
-  language: 'en',
+  language: 'de',
   setLanguage: () => {},
 });
 
@@ -36,7 +36,7 @@ export function SettingsProvider({
   initialTestLength = 20,
   initialQuestionTimer = 10,
   initialShowCorrectAnswer = false,
-  initialLanguage = 'en',
+  initialLanguage = 'de' as Language,
 }: SettingsProviderProps) {
   const [testLength, setTestLength] = useState(initialTestLength);
   const [questionTimer, setQuestionTimer] = useState<number | null>(initialQuestionTimer);

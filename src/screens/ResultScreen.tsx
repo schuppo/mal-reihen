@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
 } from 'react-native';
@@ -7,6 +7,7 @@ import { StackScreenProps } from '@react-navigation/stack';
 import { RootStackParamList } from '../../App';
 import { useSettings } from '../context/SettingsContext';
 import { useTranslations } from '../i18n/translations';
+import { saveScore } from '../utils/scoreboard';
 
 type Props = StackScreenProps<RootStackParamList, 'Result'>;
 
@@ -24,11 +25,16 @@ function formatTime(s: number) {
 }
 
 export default function ResultScreen({ navigation, route }: Props) {
-  const { correct, total, timeSeconds } = route.params;
+  const { correct, total, timeSeconds, mode, tableFilter } = route.params;
   const { language } = useSettings();
   const t = useTranslations(language);
   const pct = Math.round((correct / total) * 100);
   const { emoji, label, color } = grade(pct, t);
+
+  useEffect(() => {
+    saveScore({ correct, total, timeSeconds, mode, tableFilter });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <SafeAreaView style={styles.safe}>
