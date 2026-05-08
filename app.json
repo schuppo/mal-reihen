@@ -12,12 +12,23 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.timesrows.app"
+      "bundleIdentifier": "com.timesrows.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
-    "platforms": ["ios", "web"]
+    "platforms": [
+      "ios",
+      "web"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "2cde1a87-b93e-4864-814e-ba251e3a6055"
+      }
+    }
   }
 }
