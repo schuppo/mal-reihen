@@ -6,8 +6,10 @@ A mobile-first app for practising multiplication tables from 1×1 to 10×10, bui
 
 - **Training mode** — unlimited practice with instant right/wrong feedback, a running score, and **weighted question selection** (wrong answers appear more often; correct answers fade back)
 - **Test mode** — configurable number of questions with a final results screen (score, grade, elapsed time)
+- **Table filter** — pick a single multiplier (1–10) or all tables directly on the home screen
 - **Per-question timer** — optional countdown that auto-submits as wrong when time runs out
-- **Settings** — customise test length (5–30 questions), question timer (5–30 s or off), and whether wrong answers reveal the correct answer
+- **Scoreboard** — persistent high-score list (up to 50 entries) with grade, time, and mistake stats
+- **Settings** — customise test length, question timer, whether wrong answers reveal the correct answer, and UI language (English / Deutsch)
 - Custom numeric keypad for distraction-free input
 - Hardware keyboard support on all platforms (digits, Backspace, Enter)
 - Shake animation on wrong answers, scale animation on correct ones
@@ -43,27 +45,33 @@ npm run web        # Open in browser
 App.tsx                      Navigation root, route types, SettingsProvider
 src/
   context/
-    SettingsContext.tsx       Global settings state (testLength, questionTimer, showCorrectAnswer)
+    SettingsContext.tsx       Global settings state (testLength, questionTimer, showCorrectAnswer, language)
   screens/
-    HomeScreen.tsx           Mode selection (Training / Test)
+    HomeScreen.tsx           App entry point; table-filter picker + mode cards; links to Scoreboard, Settings
     ExerciseScreen.tsx       Question UI with NumPad, timer bar, and animations
-    ResultScreen.tsx         End-of-test summary with grade
-    SettingsScreen.tsx       Settings UI (chips + toggle)
+    ResultScreen.tsx         End-of-test summary with grade; saves score to scoreboard
+    ScoreboardScreen.tsx     Persistent high-score list (ranked by recency)
+    SettingsScreen.tsx       Settings UI (chips + toggle + language picker)
   hooks/
     useExercise.ts           All game logic, state, and weighted question selection (training)
   components/
     NumPad.tsx               Digit-entry pad (0–9, ⌫, ✓)
+  i18n/
+    translations.ts          Bilingual strings (en/de); useTranslations(language) hook
+  utils/
+    scoreboard.ts            AsyncStorage-backed score persistence
 ```
 
 ## Settings
 
-Tap ⚙️ on the Home screen to open Settings.
+Tap ⚙️ on the Home or Intro screen to open Settings.
 
 | Setting | Default | Options |
 |---|---|---|
 | Test Length | 20 questions | 5, 10, 15, 20, 25, 30 |
 | Question Timer | 10 s | Off, 5 s, 8 s, 10 s, 15 s, 20 s, 30 s |
 | Show Correct Answer | Off | On / Off |
+| Language | Deutsch | 🇬🇧 English / 🇩🇪 Deutsch |
 
 ## How To: Install on a Physical iOS Device
 
@@ -134,6 +142,7 @@ Then run `npm run ios` again.
 | React Native 0.83 | Cross-platform UI |
 | React Navigation (Stack) | Screen navigation |
 | react-native-web | Browser support |
+| AsyncStorage | Scoreboard persistence |
 
 ## Type Checking & Testing
 
@@ -142,4 +151,4 @@ npx tsc --noEmit   # TypeScript check
 npm test           # Jest test suite
 ```
 
-Tests use `@testing-library/react-native` with `jest-expo`. Coverage includes hook logic (`useExercise.test.ts`), component behaviour (`ExerciseScreen.test.tsx`), rendering of settings (`ExerciseScreen.showCorrectAnswer.test.tsx`), and context state (`SettingsContext.test.tsx`).
+Tests use `@testing-library/react-native` with `jest-expo`. Coverage includes hook logic (`useExercise.test.ts`), component behaviour (`ExerciseScreen.test.tsx`), rendering of settings (`ExerciseScreen.showCorrectAnswer.test.tsx`), context state (`SettingsContext.test.tsx`), and scoreboard utilities (`scoreboard.test.ts`).
