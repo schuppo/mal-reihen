@@ -8,6 +8,7 @@ import { RootStackParamList } from '../../App';
 import { useSettings } from '../context/SettingsContext';
 import { useTranslations } from '../i18n/translations';
 import { saveScore } from '../utils/scoreboard';
+import { useUser } from '../context/UserContext';
 
 type Props = StackScreenProps<RootStackParamList, 'Result'>;
 
@@ -28,11 +29,12 @@ export default function ResultScreen({ navigation, route }: Props) {
   const { correct, total, timeSeconds, mode, tableFilter } = route.params;
   const { language } = useSettings();
   const t = useTranslations(language);
+  const { currentUser } = useUser();
   const pct = Math.round((correct / total) * 100);
   const { emoji, label, color } = grade(pct, t);
 
   useEffect(() => {
-    saveScore({ correct, total, timeSeconds, mode, tableFilter });
+    saveScore({ correct, total, timeSeconds, mode, tableFilter }, currentUser?.id);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -70,7 +72,7 @@ export default function ResultScreen({ navigation, route }: Props) {
 
         <TouchableOpacity
           style={[styles.btn, { backgroundColor: color }]}
-          onPress={() => navigation.replace('Intro')}
+          onPress={() => navigation.replace('Exercise', { mode: 'test', tableFilter })}
         >
           <Text style={styles.btnText}>{t.tryAgain}</Text>
         </TouchableOpacity>

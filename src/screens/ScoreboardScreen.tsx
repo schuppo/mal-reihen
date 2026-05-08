@@ -9,6 +9,7 @@ import { RootStackParamList } from '../../App';
 import { loadScores, clearScores, ScoreEntry } from '../utils/scoreboard';
 import { useSettings } from '../context/SettingsContext';
 import { useTranslations } from '../i18n/translations';
+import { useUser } from '../context/UserContext';
 
 type Props = StackScreenProps<RootStackParamList, 'Scoreboard'>;
 
@@ -35,13 +36,14 @@ function gradeColor(pct: number) {
 export default function ScoreboardScreen({ navigation }: Props) {
   const { language } = useSettings();
   const t = useTranslations(language);
+  const { currentUser } = useUser();
   const [scores, setScores] = useState<ScoreEntry[]>([]);
   const [confirmClear, setConfirmClear] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
-      loadScores().then(setScores);
-    }, []),
+      loadScores(currentUser?.id).then(setScores);
+    }, [currentUser?.id]),
   );
 
   function handleClear() {
@@ -54,7 +56,7 @@ export default function ScoreboardScreen({ navigation }: Props) {
           text: t.scoreboardClearAll,
           style: 'destructive',
           onPress: async () => {
-            await clearScores();
+            await clearScores(currentUser?.id);
             setScores([]);
           },
         },
@@ -63,7 +65,7 @@ export default function ScoreboardScreen({ navigation }: Props) {
   }
 
   async function executeClear() {
-    await clearScores();
+    await clearScores(currentUser?.id);
     setScores([]);
     setConfirmClear(false);
   }

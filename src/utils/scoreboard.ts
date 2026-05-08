@@ -10,33 +10,36 @@ export interface ScoreEntry {
   tableFilter: number | 'all';
 }
 
-const KEY = 'scoreboard';
 const MAX_ENTRIES = 50;
 
-export async function loadScores(): Promise<ScoreEntry[]> {
+function scoreKey(userId?: string) {
+  return userId ? `scoreboard_${userId}` : 'scoreboard';
+}
+
+export async function loadScores(userId?: string): Promise<ScoreEntry[]> {
   try {
-    const raw = await AsyncStorage.getItem(KEY);
+    const raw = await AsyncStorage.getItem(scoreKey(userId));
     return raw ? (JSON.parse(raw) as ScoreEntry[]) : [];
   } catch {
     return [];
   }
 }
 
-export async function saveScore(entry: Omit<ScoreEntry, 'id' | 'date'>): Promise<void> {
+export async function saveScore(entry: Omit<ScoreEntry, 'id' | 'date'>, userId?: string): Promise<void> {
   try {
-    const existing = await loadScores();
+    const existing = await loadScores(userId);
     const newEntry: ScoreEntry = {
       id: Date.now().toString(),
       date: new Date().toISOString(),
       ...entry,
     };
     const updated = [newEntry, ...existing].slice(0, MAX_ENTRIES);
-    await AsyncStorage.setItem(KEY, JSON.stringify(updated));
+    await AsyncStorage.setItem(scoreKey(userId), JSON.stringify(updated));
   } catch {
     // silently fail — scoreboard is non-critical
   }
 }
 
-export async function clearScores(): Promise<void> {
-  await AsyncStorage.removeItem(KEY);
+export async function clearScores(userId?: string): Promise<void> {
+  await AsyncStorage.removeItem(scoreKey(userId));
 }

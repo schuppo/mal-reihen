@@ -47,6 +47,26 @@ export interface Translations {
   scoreboardModeTest: string;
   scoreboardModeTraining: string;
   scoreboardTableAll: string;
+  // Auth (LoginScreen / RegisterScreen)
+  loginTitle: string;
+  registerTitle: string;
+  username: string;
+  password: string;
+  confirmPassword: string;
+  loginButton: string;
+  registerButton: string;
+  goToRegister: string;
+  goToLogin: string;
+  errorUserNotFound: string;
+  errorUsernameTaken: string;
+  errorPasswordMismatch: string;
+  errorUsernameEmpty: string;
+  errorPasswordEmpty: string;
+  logout: string;
+  loggedInAs: (u: string) => string;
+  deleteAccount: string;
+  deleteAccountDesc: string;
+  deleteAccountConfirm: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -106,6 +126,26 @@ const translations: Record<Language, Translations> = {
     scoreboardModeTest: '🏆 Test',
     scoreboardModeTraining: '🎓 Training',
     scoreboardTableAll: 'All',
+    // Auth
+    loginTitle: 'Welcome back',
+    registerTitle: 'Create Account',
+    username: 'Username',
+    password: 'Password',
+    confirmPassword: 'Confirm Password',
+    loginButton: 'Login',
+    registerButton: 'Create Account',
+    goToRegister: "No account? Register",
+    goToLogin: 'Already have an account? Login',
+    errorUserNotFound: 'Username or password incorrect',
+    errorUsernameTaken: 'Username already taken',
+    errorPasswordMismatch: 'Passwords do not match',
+    errorUsernameEmpty: 'Username cannot be empty',
+    errorPasswordEmpty: 'Password cannot be empty',
+    logout: 'Logout',
+    loggedInAs: (u: string) => `👤 ${u}`,
+    deleteAccount: 'Delete Account',
+    deleteAccountDesc: 'Permanently delete your account and all scores.',
+    deleteAccountConfirm: 'This will permanently delete your account and all your scores. This cannot be undone.',
   },
   de: {
     // HomeScreen
@@ -163,6 +203,26 @@ const translations: Record<Language, Translations> = {
     scoreboardModeTest: '🏆 Test',
     scoreboardModeTraining: '🎓 Training',
     scoreboardTableAll: 'Alle',
+    // Auth
+    loginTitle: 'Willkommen zurück',
+    registerTitle: 'Konto erstellen',
+    username: 'Benutzername',
+    password: 'Passwort',
+    confirmPassword: 'Passwort bestätigen',
+    loginButton: 'Anmelden',
+    registerButton: 'Konto erstellen',
+    goToRegister: 'Kein Konto? Registrieren',
+    goToLogin: 'Schon ein Konto? Anmelden',
+    errorUserNotFound: 'Benutzername oder Passwort falsch',
+    errorUsernameTaken: 'Benutzername bereits vergeben',
+    errorPasswordMismatch: 'Passwörter stimmen nicht überein',
+    errorUsernameEmpty: 'Benutzername darf nicht leer sein',
+    errorPasswordEmpty: 'Passwort darf nicht leer sein',
+    logout: 'Abmelden',
+    loggedInAs: (u: string) => `👤 ${u}`,
+    deleteAccount: 'Konto löschen',
+    deleteAccountDesc: 'Konto und alle Ergebnisse dauerhaft löschen.',
+    deleteAccountConfirm: 'Dein Konto und alle Ergebnisse werden dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.',
   },
 } as const;
 
