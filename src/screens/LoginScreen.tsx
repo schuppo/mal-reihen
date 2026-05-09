@@ -136,6 +136,8 @@ export default function LoginScreen() {
               {isLogin ? t.goToRegister : t.goToLogin}
             </Text>
           </TouchableOpacity>
+
+          <Text style={styles.localHint}>{t.localOnlyHint}</Text>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -245,5 +247,13 @@ const styles = StyleSheet.create({
     color: '#aaa',
     fontSize: 15,
     paddingVertical: 12,
+  },
+  localHint: {
+    marginTop: 28,
+    fontSize: 13,
+    color: '#aaa',
+    textAlign: 'center',
+    maxWidth: 300,
+    lineHeight: 20,
   },
 });

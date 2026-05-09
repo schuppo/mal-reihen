@@ -70,6 +70,7 @@ export interface Translations {
   deleteAccount: string;
   deleteAccountDesc: string;
   deleteAccountConfirm: string;
+  localOnlyHint: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -152,6 +153,7 @@ const translations: Record<Language, Translations> = {
     deleteAccount: 'Delete Account',
     deleteAccountDesc: 'Permanently delete your account and all scores.',
     deleteAccountConfirm: 'This will permanently delete your account and all your scores. This cannot be undone.',
+    localOnlyHint: '🔒 Accounts are saved only on this device — no password needed!',
   },
   de: {
     // HomeScreen
@@ -232,6 +234,7 @@ const translations: Record<Language, Translations> = {
     deleteAccount: 'Konto löschen',
     deleteAccountDesc: 'Konto und alle Ergebnisse dauerhaft löschen.',
     deleteAccountConfirm: 'Dein Konto und alle Ergebnisse werden dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.',
+    localOnlyHint: '🔒 Konten werden nur auf diesem Gerät gespeichert – kein Passwort nötig!',
   },
 } as const;
 
