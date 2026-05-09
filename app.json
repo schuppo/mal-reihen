@@ -19,7 +19,9 @@
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "bundler": "metro",
+      "bundler": "metro"
+    },
+    "experiments": {
       "baseUrl": "/mal-reihen"
     },
     "platforms": [

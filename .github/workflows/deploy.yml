@@ -32,7 +32,7 @@ jobs:
         run: npm ci
 
       - name: Export Expo web app
-        run: npx expo export --platform web --output-dir dist --base-url /mal-reihen
+        run: npx expo export --platform web --output-dir dist
 
       - name: Add .nojekyll
         run: touch dist/.nojekyll
