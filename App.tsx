@@ -1,6 +1,18 @@
 import 'react-native-gesture-handler';
 import React from 'react';
 import { TouchableOpacity, Text, View, ActivityIndicator, Platform } from 'react-native';
+
+// Fix web scrolling: Expo's #root div has no height by default, which breaks
+// flex: 1 cascading and makes ScrollView unable to scroll.
+if (Platform.OS === 'web' && typeof document !== 'undefined') {
+  const root = document.getElementById('root');
+  if (root) {
+    root.style.height = '100vh';
+    root.style.overflow = 'hidden';
+    root.style.display = 'flex';
+    root.style.flexDirection = 'column';
+  }
+}
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';

@@ -19,41 +19,28 @@ describe('LoginScreen', () => {
   it('renders login fields and submit button', () => {
     const { getByTestId } = renderLogin();
     expect(getByTestId('input-username')).toBeTruthy();
-    expect(getByTestId('input-password')).toBeTruthy();
     expect(getByTestId('auth-submit')).toBeTruthy();
   });
 
-  it('shows error for wrong credentials', async () => {
+  it('shows error for unknown username', async () => {
     const { getByTestId } = renderLogin();
     fireEvent.changeText(getByTestId('input-username'), 'nobody');
-    fireEvent.changeText(getByTestId('input-password'), 'wrong');
     await act(async () => { fireEvent.press(getByTestId('auth-submit')); });
     await waitFor(() => expect(getByTestId('auth-error')).toBeTruthy());
   });
 
   it('toggles to register mode', () => {
     const { getByTestId, queryByTestId } = renderLogin();
-    expect(queryByTestId('input-confirm-password')).toBeNull();
+    expect(queryByTestId('auth-toggle')).toBeTruthy();
     fireEvent.press(getByTestId('auth-toggle'));
-    expect(getByTestId('input-confirm-password')).toBeTruthy();
+    // No confirm-password field in password-free mode
+    expect(queryByTestId('input-confirm-password')).toBeNull();
   });
 
-  it('shows mismatch error when passwords differ in register mode', async () => {
-    const { getByTestId } = renderLogin();
-    fireEvent.press(getByTestId('auth-toggle')); // switch to register
-    fireEvent.changeText(getByTestId('input-username'), 'alice');
-    fireEvent.changeText(getByTestId('input-password'), 'pass1');
-    fireEvent.changeText(getByTestId('input-confirm-password'), 'pass2');
-    await act(async () => { fireEvent.press(getByTestId('auth-submit')); });
-    await waitFor(() => expect(getByTestId('auth-error')).toBeTruthy());
-  });
-
-  it('registers successfully with matching passwords', async () => {
+  it('registers successfully with just a username', async () => {
     const { getByTestId, queryByTestId } = renderLogin();
     fireEvent.press(getByTestId('auth-toggle')); // switch to register
     fireEvent.changeText(getByTestId('input-username'), 'newuser');
-    fireEvent.changeText(getByTestId('input-password'), 'pass');
-    fireEvent.changeText(getByTestId('input-confirm-password'), 'pass');
     await act(async () => { fireEvent.press(getByTestId('auth-submit')); });
     // After successful register, UserContext sets currentUser; no error shown
     await waitFor(() => expect(queryByTestId('auth-error')).toBeNull());

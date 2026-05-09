@@ -9,11 +9,8 @@ import { clearScores } from '../utils/scoreboard';
 interface UserContextValue {
   currentUser: User | null;
   isLoading: boolean;
-  login: (username: string, password: string) => Promise<boolean>;
-  register: (
-    username: string,
-    password: string,
-  ) => Promise<{ success: boolean; error?: string }>;
+  login: (username: string) => Promise<boolean>;
+  register: (username: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   saveSettings: (settings: UserSettings) => Promise<void>;
   deleteAccount: () => Promise<void>;
@@ -46,8 +43,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     })();
   }, []);
 
-  async function login(username: string, password: string): Promise<boolean> {
-    const user = await loginUser(username, password);
+  async function login(username: string): Promise<boolean> {
+    const user = await loginUser(username);
     if (user) {
       setCurrentUser(user);
       await setSessionUserId(user.id);
@@ -58,9 +55,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   async function register(
     username: string,
-    password: string,
   ): Promise<{ success: boolean; error?: string }> {
-    const result = await registerUser(username, password);
+    const result = await registerUser(username);
     if (result.success && result.user) {
       setCurrentUser(result.user);
       await setSessionUserId(result.user.id);

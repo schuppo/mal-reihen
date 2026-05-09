@@ -51,17 +51,14 @@ export interface Translations {
   loginTitle: string;
   registerTitle: string;
   username: string;
-  password: string;
-  confirmPassword: string;
   loginButton: string;
   registerButton: string;
   goToRegister: string;
   goToLogin: string;
   errorUserNotFound: string;
   errorUsernameTaken: string;
-  errorPasswordMismatch: string;
   errorUsernameEmpty: string;
-  errorPasswordEmpty: string;
+  noAccounts: string;
   logout: string;
   loggedInAs: (u: string) => string;
   deleteAccount: string;
@@ -130,17 +127,14 @@ const translations: Record<Language, Translations> = {
     loginTitle: 'Welcome back',
     registerTitle: 'Create Account',
     username: 'Username',
-    password: 'Password',
-    confirmPassword: 'Confirm Password',
     loginButton: 'Login',
     registerButton: 'Create Account',
     goToRegister: "No account? Register",
     goToLogin: 'Already have an account? Login',
-    errorUserNotFound: 'Username or password incorrect',
+    errorUserNotFound: 'Username not found',
     errorUsernameTaken: 'Username already taken',
-    errorPasswordMismatch: 'Passwords do not match',
     errorUsernameEmpty: 'Username cannot be empty',
-    errorPasswordEmpty: 'Password cannot be empty',
+    noAccounts: 'No accounts yet. Register below!',
     logout: 'Logout',
     loggedInAs: (u: string) => `👤 ${u}`,
     deleteAccount: 'Delete Account',
@@ -207,17 +201,14 @@ const translations: Record<Language, Translations> = {
     loginTitle: 'Willkommen zurück',
     registerTitle: 'Konto erstellen',
     username: 'Benutzername',
-    password: 'Passwort',
-    confirmPassword: 'Passwort bestätigen',
     loginButton: 'Anmelden',
     registerButton: 'Konto erstellen',
     goToRegister: 'Kein Konto? Registrieren',
     goToLogin: 'Schon ein Konto? Anmelden',
-    errorUserNotFound: 'Benutzername oder Passwort falsch',
+    errorUserNotFound: 'Benutzername nicht gefunden',
     errorUsernameTaken: 'Benutzername bereits vergeben',
-    errorPasswordMismatch: 'Passwörter stimmen nicht überein',
     errorUsernameEmpty: 'Benutzername darf nicht leer sein',
-    errorPasswordEmpty: 'Passwort darf nicht leer sein',
+    noAccounts: 'Noch kein Konto. Unten registrieren!',
     logout: 'Abmelden',
     loggedInAs: (u: string) => `👤 ${u}`,
     deleteAccount: 'Konto löschen',

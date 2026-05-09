@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator,
@@ -6,6 +6,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useUser } from '../context/UserContext';
 import { useTranslations } from '../i18n/translations';
+import { loadUsers, User } from '../utils/users';
 
 /**
  * LoginScreen – shown when no user is logged in.
@@ -15,40 +16,48 @@ import { useTranslations } from '../i18n/translations';
  */
 export default function LoginScreen() {
   const { login, register } = useUser();
-  // Use English as the default language on the auth screen (no user preference yet)
   const t = useTranslations('en');
 
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [accounts, setAccounts] = useState<User[]>([]);
+
+  useEffect(() => {
+    loadUsers().then(setAccounts);
+  }, []);
+
+  async function handleLoginAs(name: string) {
+    setError('');
+    setBusy(true);
+    try {
+      const ok = await login(name);
+      if (!ok) setError(t.errorUserNotFound);
+    } finally {
+      setBusy(false);
+    }
+  }
 
   function resolveError(key: string | undefined): string {
     if (!key) return '';
     const map: Record<string, string> = {
       errorUsernameTaken: t.errorUsernameTaken,
       errorUsernameEmpty: t.errorUsernameEmpty,
-      errorPasswordEmpty: t.errorPasswordEmpty,
     };
     return map[key] ?? key;
   }
 
   async function handleSubmit() {
     setError('');
-    if (mode === 'register' && password !== confirmPassword) {
-      setError(t.errorPasswordMismatch);
-      return;
-    }
     setBusy(true);
     try {
-      if (mode === 'login') {
-        const ok = await login(username, password);
-        if (!ok) setError(t.errorUserNotFound);
+      const result = await register(username);
+      if (!result.success) {
+        setError(resolveError(result.error));
       } else {
-        const result = await register(username, password);
-        if (!result.success) setError(resolveError(result.error));
+        // refresh account list in case user goes back to login mode
+        loadUsers().then(setAccounts);
       }
     } finally {
       setBusy(false);
@@ -58,7 +67,7 @@ export default function LoginScreen() {
   function toggleMode() {
     setMode(m => (m === 'login' ? 'register' : 'login'));
     setError('');
-    setConfirmPassword('');
+    setUsername('');
   }
 
   const isLogin = mode === 'login';
@@ -73,60 +82,54 @@ export default function LoginScreen() {
           <Text style={styles.appTitle}>✖️ Times Rows</Text>
           <Text style={styles.modeTitle}>{isLogin ? t.loginTitle : t.registerTitle}</Text>
 
-          <View style={styles.card}>
-            <Text style={styles.label}>{t.username}</Text>
-            <TextInput
-              style={styles.input}
-              value={username}
-              onChangeText={setUsername}
-              autoCapitalize="none"
-              autoCorrect={false}
-              returnKeyType="next"
-              testID="input-username"
-            />
-
-            <Text style={styles.label}>{t.password}</Text>
-            <TextInput
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              returnKeyType={isLogin ? 'done' : 'next'}
-              onSubmitEditing={isLogin ? handleSubmit : undefined}
-              testID="input-password"
-            />
-
-            {!isLogin && (
-              <>
-                <Text style={styles.label}>{t.confirmPassword}</Text>
-                <TextInput
-                  style={styles.input}
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  secureTextEntry
-                  returnKeyType="done"
-                  onSubmitEditing={handleSubmit}
-                  testID="input-confirm-password"
-                />
-              </>
-            )}
-
-            {!!error && (
-              <Text style={styles.error} testID="auth-error">{error}</Text>
-            )}
-
-            <TouchableOpacity
-              style={styles.btn}
-              onPress={handleSubmit}
-              disabled={busy}
-              testID="auth-submit"
-            >
-              {busy
-                ? <ActivityIndicator color="#fff" />
-                : <Text style={styles.btnText}>{isLogin ? t.loginButton : t.registerButton}</Text>
-              }
-            </TouchableOpacity>
-          </View>
+          {isLogin ? (
+            <View style={styles.card}>
+              {accounts.length === 0 ? (
+                <Text style={styles.noAccounts}>{t.noAccounts}</Text>
+              ) : (
+                accounts.map(acc => (
+                  <TouchableOpacity
+                    key={acc.id}
+                    style={styles.accountRow}
+                    onPress={() => handleLoginAs(acc.username)}
+                    disabled={busy}
+                    testID={`account-${acc.username}`}
+                  >
+                    <Text style={styles.accountAvatar}>👤</Text>
+                    <Text style={styles.accountName}>{acc.username}</Text>
+                    {busy ? <ActivityIndicator size="small" color="#6C63FF" /> : <Text style={styles.accountArrow}>›</Text>}
+                  </TouchableOpacity>
+                ))
+              )}
+              {!!error && <Text style={styles.error} testID="auth-error">{error}</Text>}
+            </View>
+          ) : (
+            <View style={styles.card}>
+              <Text style={styles.label}>{t.username}</Text>
+              <TextInput
+                style={styles.input}
+                value={username}
+                onChangeText={setUsername}
+                autoCapitalize="none"
+                autoCorrect={false}
+                returnKeyType="done"
+                onSubmitEditing={handleSubmit}
+                testID="input-username"
+              />
+              {!!error && <Text style={styles.error} testID="auth-error">{error}</Text>}
+              <TouchableOpacity
+                style={styles.btn}
+                onPress={handleSubmit}
+                disabled={busy}
+                testID="auth-submit"
+              >
+                {busy
+                  ? <ActivityIndicator color="#fff" />
+                  : <Text style={styles.btnText}>{t.registerButton}</Text>
+                }
+              </TouchableOpacity>
+            </View>
+          )}
 
           <TouchableOpacity onPress={toggleMode} testID="auth-toggle">
             <Text style={styles.toggle}>
@@ -213,5 +216,34 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     textDecorationLine: 'underline',
+  },
+  accountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0EFFF',
+  },
+  accountAvatar: {
+    fontSize: 22,
+    marginRight: 12,
+  },
+  accountName: {
+    flex: 1,
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#333',
+  },
+  accountArrow: {
+    fontSize: 22,
+    color: '#6C63FF',
+    fontWeight: '700',
+  },
+  noAccounts: {
+    textAlign: 'center',
+    color: '#aaa',
+    fontSize: 15,
+    paddingVertical: 12,
   },
 });

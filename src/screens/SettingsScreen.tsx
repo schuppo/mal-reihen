@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Switch, Alert, Platform, ScrollView,
-  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSettings } from '../context/SettingsContext';
@@ -16,7 +15,6 @@ export default function SettingsScreen() {
   const t = useTranslations(language);
   const { deleteAccount } = useUser();
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const { height } = useWindowDimensions();
 
   function handleDeleteAccount() {
     if (Platform.OS === 'web') {
@@ -30,8 +28,11 @@ export default function SettingsScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { height }]}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.container}>
+    <SafeAreaView style={styles.safe}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.container}
+      >
 
         {/* ── Test Length ── */}
         <Text style={styles.sectionTitle}>{t.settingsTestLength}</Text>
@@ -169,9 +170,8 @@ export default function SettingsScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#F0EFFF' },
-  scroll: { flex: 1 },
+  scroll: { flex: 1, backgroundColor: '#F0EFFF' },
   container: {
-    flexGrow: 1,
     padding: 24,
     paddingBottom: 48,
     backgroundColor: '#F0EFFF',

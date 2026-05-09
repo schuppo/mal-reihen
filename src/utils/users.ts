@@ -18,8 +18,6 @@ export const DEFAULT_SETTINGS: UserSettings = {
 export interface User {
   id: string;
   username: string;
-  /** Plaintext — this is a local-only, offline app with no sensitive data. */
-  password: string;
   settings: UserSettings;
 }
 
@@ -43,10 +41,8 @@ async function persistUsers(users: User[]): Promise<void> {
 
 export async function registerUser(
   username: string,
-  password: string,
 ): Promise<{ success: boolean; error?: string; user?: User }> {
   if (!username.trim()) return { success: false, error: 'errorUsernameEmpty' };
-  if (!password) return { success: false, error: 'errorPasswordEmpty' };
   const users = await loadUsers();
   if (users.find(u => u.username.toLowerCase() === username.trim().toLowerCase())) {
     return { success: false, error: 'errorUsernameTaken' };
@@ -54,7 +50,6 @@ export async function registerUser(
   const user: User = {
     id: Date.now().toString(),
     username: username.trim(),
-    password,
     settings: { ...DEFAULT_SETTINGS },
   };
   await persistUsers([...users, user]);
@@ -63,14 +58,11 @@ export async function registerUser(
 
 export async function loginUser(
   username: string,
-  password: string,
 ): Promise<User | null> {
   const users = await loadUsers();
   return (
     users.find(
-      u =>
-        u.username.toLowerCase() === username.trim().toLowerCase() &&
-        u.password === password,
+      u => u.username.toLowerCase() === username.trim().toLowerCase(),
     ) ?? null
   );
 }
