@@ -7,5 +7,4 @@ coverage/
 # Expo generated native directories (regenerate with: npx expo prebuild)
 ios/
 android/
-assets/
 .expo/
