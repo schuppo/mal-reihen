@@ -76,7 +76,7 @@ function AppNavigator() {
           name="Home"
           component={HomeScreen}
           options={({ navigation }) => ({
-            title: '✖️ Times Rows',
+            title: '✖️ Mal-Reihen',
             headerRight: () => (
               <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 16, gap: 8 }}>
                 {headerIcons(navigation)}

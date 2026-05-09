@@ -70,7 +70,7 @@ export interface Translations {
 const translations: Record<Language, Translations> = {
   en: {
     // HomeScreen
-    appTitle: '✖️ Times Rows',
+    appTitle: '✖️ Mal-Reihen',
     appSubtitle: 'Master the multiplication tables\nfrom 1×1 to 10×10',
     tapToBegin: 'Tap a card to begin',
     trainingTitle: 'Training',
@@ -145,7 +145,7 @@ const translations: Record<Language, Translations> = {
   },
   de: {
     // HomeScreen
-    appTitle: '✖️ Times Rows',
+    appTitle: '✖️ Mal-Reihen',
     appSubtitle: 'Lerne das kleine Einmaleins\nvon 1×1 bis 10×10',
     tapToBegin: 'Karte antippen zum Starten',
     trainingTitle: 'Training',

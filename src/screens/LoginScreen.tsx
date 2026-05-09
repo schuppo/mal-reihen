@@ -79,7 +79,7 @@ export default function LoginScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-          <Text style={styles.appTitle}>✖️ Times Rows</Text>
+          <Text style={styles.appTitle}>✖️ Mal-Reihen</Text>
           <Text style={styles.modeTitle}>{isLogin ? t.loginTitle : t.registerTitle}</Text>
 
           {isLogin ? (
