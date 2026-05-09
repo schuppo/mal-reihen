@@ -15,16 +15,17 @@ function randomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function generateQuestion(tableFilter: number | 'all' = 'all'): Question {
-  const a = tableFilter === 'all' ? randomInt(1, 10) : tableFilter;
+function generateQuestion(tableFilter: number[] | 'all' = 'all'): Question {
+  const aValues = tableFilter === 'all' ? Array.from({ length: 10 }, (_, i) => i + 1) : tableFilter;
+  const a = aValues[Math.floor(Math.random() * aValues.length)];
   const b = randomInt(1, 10);
   return { a, b, answer: a * b };
 }
 
 /** Build the initial weight map: all questions start at weight 1. */
-function buildInitialWeights(tableFilter: number | 'all'): Record<string, number> {
+function buildInitialWeights(tableFilter: number[] | 'all'): Record<string, number> {
   const weights: Record<string, number> = {};
-  const aValues = tableFilter === 'all' ? Array.from({ length: 10 }, (_, i) => i + 1) : [tableFilter];
+  const aValues = tableFilter === 'all' ? Array.from({ length: 10 }, (_, i) => i + 1) : tableFilter;
   for (const a of aValues) {
     for (let b = 1; b <= 10; b++) {
       weights[`${a}x${b}`] = 1;
@@ -38,8 +39,8 @@ const WEIGHT_ON_WRONG = 3;       // multiply weight by this on wrong answer (max
 const MIN_WEIGHT = 0.25;
 const MAX_WEIGHT = 10;
 
-function pickWeightedQuestion(weights: Record<string, number>, tableFilter: number | 'all'): Question {
-  const aValues = tableFilter === 'all' ? Array.from({ length: 10 }, (_, i) => i + 1) : [tableFilter as number];
+function pickWeightedQuestion(weights: Record<string, number>, tableFilter: number[] | 'all'): Question {
+  const aValues = tableFilter === 'all' ? Array.from({ length: 10 }, (_, i) => i + 1) : tableFilter;
   const keys: string[] = [];
   const w: number[] = [];
   for (const a of aValues) {
@@ -62,7 +63,7 @@ function pickWeightedQuestion(weights: Record<string, number>, tableFilter: numb
   return { a, b, answer: a * b };
 }
 
-export function useExercise(mode: 'training' | 'test', testLength = 20, tableFilter: number | 'all' = 'all') {
+export function useExercise(mode: 'training' | 'test', testLength = 20, tableFilter: number[] | 'all' = 'all') {
   const weights = useRef<Record<string, number>>(buildInitialWeights(tableFilter));
 
   const nextQuestion = useCallback(() => {

@@ -46,7 +46,7 @@ describe('scoreboard utils', () => {
     });
 
     it('prepends new entry (most recent first)', async () => {
-      await saveScore({ correct: 5, total: 10, timeSeconds: 60, mode: 'training', tableFilter: 3 });
+      await saveScore({ correct: 5, total: 10, timeSeconds: 60, mode: 'training', tableFilter: [3] });
       await saveScore({ correct: 9, total: 10, timeSeconds: 30, mode: 'test', tableFilter: 'all' });
       const scores = await loadScores();
       expect(scores[0].correct).toBe(9); // latest first
@@ -54,7 +54,7 @@ describe('scoreboard utils', () => {
       expect(scores[0].tableFilter).toBe('all');
       expect(scores[1].correct).toBe(5);
       expect(scores[1].mode).toBe('training');
-      expect(scores[1].tableFilter).toBe(3);
+      expect(scores[1].tableFilter).toEqual([3]);
     });
 
     it('caps stored entries at 50', async () => {

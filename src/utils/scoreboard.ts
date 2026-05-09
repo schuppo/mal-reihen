@@ -7,7 +7,7 @@ export interface ScoreEntry {
   total: number;
   timeSeconds: number;
   mode: 'training' | 'test';
-  tableFilter: number | 'all';
+  tableFilter: number[] | 'all';
 }
 
 const MAX_ENTRIES = 50;

@@ -30,8 +30,8 @@ import { UserProvider, useUser } from './src/context/UserContext';
 export type RootStackParamList = {
   Login: undefined;
   Home: undefined;
-  Exercise: { mode: 'training' | 'test'; tableFilter: number | 'all' };
-  Result: { correct: number; total: number; timeSeconds: number; mode: 'training' | 'test'; tableFilter: number | 'all' };
+  Exercise: { mode: 'training' | 'test'; tableFilter: number[] | 'all' };
+  Result: { correct: number; total: number; timeSeconds: number; mode: 'training' | 'test'; tableFilter: number[] | 'all' };
   Settings: undefined;
   Scoreboard: undefined;
 };

@@ -90,7 +90,7 @@ export default function ScoreboardScreen({ navigation }: Props) {
             </View>
             <View style={styles.tableBadge}>
               <Text style={styles.tableBadgeText}>
-                {item.tableFilter === 'all' ? t.scoreboardTableAll : `${item.tableFilter}×`}
+                {item.tableFilter === 'all' ? t.scoreboardTableAll : item.tableFilter.join(', ')}
               </Text>
             </View>
             <Text style={styles.date}>{formatDate(item.date)}</Text>

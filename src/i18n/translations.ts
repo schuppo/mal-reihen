@@ -79,7 +79,7 @@ const translations: Record<Language, Translations> = {
 
     // IntroScreen
     chooseTable: 'Choose a Table',
-    chooseTableSubtitle: 'Practice one number or all at once',
+    chooseTableSubtitle: 'Tap one or more numbers, or practice all',
     all: 'All',
 
     // ExerciseScreen
@@ -153,7 +153,7 @@ const translations: Record<Language, Translations> = {
 
     // IntroScreen
     chooseTable: 'Einmaleins wählen',
-    chooseTableSubtitle: 'Übe eine Zahl oder alle auf einmal',
+    chooseTableSubtitle: 'Eine oder mehrere Zahlen wählen oder alle',
     all: 'Alle',
 
     // ExerciseScreen

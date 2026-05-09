@@ -17,7 +17,16 @@ export default function HomeScreen({ navigation }: Props) {
   const { testLength, language } = useSettings();
   const t = useTranslations(language);
   const { currentUser } = useUser();
-  const [selected, setSelected] = useState<number | 'all'>('all');
+  const [selected, setSelected] = useState<number[] | 'all'>('all');
+
+  function toggleNumber(n: number) {
+    if (selected === 'all') {
+      setSelected([n]);
+    } else {
+      const next = selected.includes(n) ? selected.filter(x => x !== n) : [...selected, n];
+      setSelected(next.length === 0 ? 'all' : next.sort((a, b) => a - b));
+    }
+  }
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -34,30 +43,33 @@ export default function HomeScreen({ navigation }: Props) {
 
         <View style={styles.grid}>
           <TouchableOpacity
-            style={[styles.chip, selected === 'all' && styles.chipSelected]}
+            style={[styles.chip, styles.chipAll, selected === 'all' && styles.chipAllSelected]}
             onPress={() => setSelected('all')}
             activeOpacity={0.8}
           >
-            <Text style={[styles.chipText, selected === 'all' && styles.chipTextSelected]}>
+            <Text style={[styles.chipText, styles.chipTextAll, selected === 'all' && styles.chipTextSelected]}>
               {t.all}
             </Text>
           </TouchableOpacity>
-          {NUMBERS.map(n => (
-            <TouchableOpacity
-              key={n}
-              style={[styles.chip, selected === n && styles.chipSelected]}
-              onPress={() => setSelected(n)}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.chipText, selected === n && styles.chipTextSelected]}>
-                {n}
-              </Text>
-            </TouchableOpacity>
-          ))}
+          {NUMBERS.map(n => {
+            const isSelected = selected !== 'all' && selected.includes(n);
+            return (
+              <TouchableOpacity
+                key={n}
+                style={[styles.chip, isSelected && styles.chipSelected]}
+                onPress={() => toggleNumber(n)}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+                  {n}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         {selected !== 'all' && (
-          <Text style={styles.preview}>{selected} × 1 … {selected} × 10</Text>
+          <Text style={styles.preview}>{selected.join(', ')}</Text>
         )}
 
         {/* Mode cards */}
@@ -150,8 +162,20 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 3,
   },
+  chipAll: {
+    width: 72,
+    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: '#6C63FF',
+    backgroundColor: '#F0EFFF',
+  },
+  chipAllSelected: {
+    backgroundColor: '#6C63FF',
+    borderColor: '#6C63FF',
+  },
   chipSelected: { backgroundColor: '#6C63FF' },
   chipText: { fontSize: 17, fontWeight: '700', color: '#333' },
+  chipTextAll: { color: '#6C63FF', fontSize: 15 },
   chipTextSelected: { color: '#fff' },
   preview: {
     fontSize: 13,
