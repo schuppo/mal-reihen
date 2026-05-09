@@ -290,5 +290,84 @@ describe('ExerciseScreen – question timer', () => {
   });
 });
 
+// ---------- test mode completion ----------
+
+describe('ExerciseScreen – test mode completion', () => {
+  beforeEach(() => { jest.clearAllMocks(); });
+
+  it('navigates to Result when all test questions are answered', () => {
+    const { getByTestId } = renderExercise({ mode: 'test', testLength: 1, questionTimer: null });
+    const hiddenInput = getByTestId('hidden-keyboard-input');
+
+    act(() => { fireEvent(hiddenInput, 'keyPress', { nativeEvent: { key: '1' } }); });
+    act(() => {
+      fireEvent(hiddenInput, 'submitEditing');
+      jest.runAllTimers();
+    });
+
+    expect(mockNavigation.replace).toHaveBeenCalledWith('Result', expect.objectContaining({
+      total: 1,
+      mode: 'test',
+    }));
+  });
+
+  it('navigates to Result on timer timeout completing the last test question', () => {
+    renderExercise({ mode: 'test', testLength: 1, questionTimer: 5 });
+
+    act(() => {
+      jest.advanceTimersByTime(5000); // timeout fires → wrong → done
+      jest.advanceTimersByTime(800);  // test feedback auto-clear
+    });
+
+    expect(mockNavigation.replace).toHaveBeenCalledWith('Result', expect.objectContaining({
+      total: 1,
+      mode: 'test',
+    }));
+  });
+});
+
+// ---------- finish training button ----------
+
+describe('ExerciseScreen – finish training', () => {
+  beforeEach(() => { jest.clearAllMocks(); });
+
+  it('finish button is hidden before any answer', () => {
+    const { queryByTestId } = renderExercise({ mode: 'training' });
+    expect(queryByTestId('finish-training-btn')).toBeNull();
+  });
+
+  it('finish button appears after the first answer', () => {
+    const { getByTestId } = renderExercise({ mode: 'training', questionTimer: null });
+    const hiddenInput = getByTestId('hidden-keyboard-input');
+
+    act(() => { fireEvent(hiddenInput, 'keyPress', { nativeEvent: { key: '1' } }); });
+    act(() => {
+      fireEvent(hiddenInput, 'submitEditing');
+      jest.runAllTimers();
+    });
+
+    expect(getByTestId('finish-training-btn')).toBeTruthy();
+  });
+
+  it('pressing finish training navigates to Result with answered count', () => {
+    const { getByTestId } = renderExercise({ mode: 'training', questionTimer: null });
+    const hiddenInput = getByTestId('hidden-keyboard-input');
+
+    act(() => { fireEvent(hiddenInput, 'keyPress', { nativeEvent: { key: '1' } }); });
+    act(() => {
+      fireEvent(hiddenInput, 'submitEditing');
+      jest.runAllTimers();
+    });
+
+    act(() => { fireEvent.press(getByTestId('finish-training-btn')); });
+
+    expect(mockNavigation.replace).toHaveBeenCalledWith('Result', expect.objectContaining({
+      correct: expect.any(Number),
+      total: 1,
+      mode: 'training',
+    }));
+  });
+});
+
 // ---------- show correct answer setting ----------
 // See ExerciseScreen.showCorrectAnswer.test.tsx for rendering tests of this feature.

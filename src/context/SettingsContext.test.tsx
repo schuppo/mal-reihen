@@ -62,3 +62,47 @@ describe('SettingsContext – setters', () => {
     expect(result.current.showCorrectAnswer).toBe(false);
   });
 });
+
+describe('SettingsContext – onSave callback', () => {
+  function wrapperWithSave(onSave: jest.Mock) {
+    return ({ children }: { children: React.ReactNode }) => (
+      <SettingsProvider
+        initialTestLength={20}
+        initialQuestionTimer={10}
+        initialShowCorrectAnswer={false}
+        initialLanguage="en"
+        onSave={onSave}
+      >
+        {children}
+      </SettingsProvider>
+    );
+  }
+
+  it('calls onSave with new testLength when setTestLength is called', () => {
+    const onSave = jest.fn();
+    const { result } = renderHook(() => useSettings(), { wrapper: wrapperWithSave(onSave) });
+    act(() => { result.current.setTestLength(30); });
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ testLength: 30 }));
+  });
+
+  it('calls onSave with new questionTimer when setQuestionTimer is called', () => {
+    const onSave = jest.fn();
+    const { result } = renderHook(() => useSettings(), { wrapper: wrapperWithSave(onSave) });
+    act(() => { result.current.setQuestionTimer(null); });
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ questionTimer: null }));
+  });
+
+  it('calls onSave with new showCorrectAnswer when setShowCorrectAnswer is called', () => {
+    const onSave = jest.fn();
+    const { result } = renderHook(() => useSettings(), { wrapper: wrapperWithSave(onSave) });
+    act(() => { result.current.setShowCorrectAnswer(true); });
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ showCorrectAnswer: true }));
+  });
+
+  it('calls onSave with new language when setLanguage is called', () => {
+    const onSave = jest.fn();
+    const { result } = renderHook(() => useSettings(), { wrapper: wrapperWithSave(onSave) });
+    act(() => { result.current.setLanguage('de'); });
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ language: 'de' }));
+  });
+});

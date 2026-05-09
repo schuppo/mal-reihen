@@ -228,3 +228,30 @@ describe('useExercise – submitTimeout', () => {
     expect(result.current.input).toBe('');
   });
 });
+
+describe('useExercise – tableFilter with multiple numbers', () => {
+  it('generates questions only from the selected table numbers', () => {
+    const { result } = renderHook(() => useExercise('training', 20, [3, 7]));
+    // Run 20 questions and confirm `a` is always 3 or 7
+    for (let i = 0; i < 20; i++) {
+      expect([3, 7]).toContain(result.current.current.a);
+      act(() => {
+        result.current.appendDigit(String(result.current.current.answer));
+        result.current.submit();
+        jest.advanceTimersByTime(1200);
+      });
+    }
+  });
+
+  it('generates questions only from the single selected table number', () => {
+    const { result } = renderHook(() => useExercise('test', 5, [5]));
+    for (let i = 0; i < 5; i++) {
+      expect(result.current.current.a).toBe(5);
+      act(() => {
+        result.current.appendDigit(String(result.current.current.answer));
+        result.current.submit();
+        jest.advanceTimersByTime(800);
+      });
+    }
+  });
+});
