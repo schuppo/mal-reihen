@@ -9,6 +9,7 @@ export interface ScoreEntry {
   mode: 'training' | 'test';
   tableFilter: number[] | 'all';
   mistakes?: { a: number; b: number }[];
+  timings?: number[];
 }
 
 const MAX_ENTRIES = 50;

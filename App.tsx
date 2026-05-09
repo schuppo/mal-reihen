@@ -31,7 +31,7 @@ export type RootStackParamList = {
   Login: undefined;
   Home: undefined;
   Exercise: { mode: 'training' | 'test'; tableFilter: number[] | 'all' };
-  Result: { correct: number; total: number; timeSeconds: number; mode: 'training' | 'test'; tableFilter: number[] | 'all'; mistakes: { a: number; b: number }[] };
+  Result: { correct: number; total: number; timeSeconds: number; mode: 'training' | 'test'; tableFilter: number[] | 'all'; mistakes: { a: number; b: number }[]; timings?: number[] };
   Settings: undefined;
   Scoreboard: undefined;
 };

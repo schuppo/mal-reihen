@@ -66,6 +66,16 @@ function TroubleSpots({ scores, t }: { scores: ScoreEntry[]; t: ReturnType<typeo
   );
 }
 
+function calcTimingStats(timings: number[] | undefined): { min: number; max: number; median: number } | null {
+  if (!timings || timings.length === 0) return null;
+  const sorted = [...timings].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  const median = sorted.length % 2 === 0
+    ? Math.round((sorted[mid - 1] + sorted[mid]) / 2)
+    : sorted[mid];
+  return { min: sorted[0], max: sorted[sorted.length - 1], median };
+}
+
 function formatTime(s: number) {
   const m = Math.floor(s / 60);
   const sec = s % 60;
@@ -127,6 +137,7 @@ export default function ScoreboardScreen({ navigation }: Props) {
     const pct = Math.round((item.correct / item.total) * 100);
     const timePerAnswer = (item.timeSeconds / item.total).toFixed(1);
     const color = gradeColor(pct);
+    const ts = calcTimingStats(item.timings);
     return (
       <View style={styles.row}>
         <View style={styles.rank}>
@@ -162,6 +173,22 @@ export default function ScoreboardScreen({ navigation }: Props) {
               <Text style={styles.statLabel}>{t.mistakes}</Text>
             </View>
           </View>
+          {ts && (
+            <View style={styles.rowBottom2}>
+              <View style={styles.stat}>
+                <Text style={styles.statValue}>{ts.min}s</Text>
+                <Text style={styles.statLabel}>{t.statMin}</Text>
+              </View>
+              <View style={styles.stat}>
+                <Text style={styles.statValue}>{ts.median}s</Text>
+                <Text style={styles.statLabel}>{t.statMedian}</Text>
+              </View>
+              <View style={styles.stat}>
+                <Text style={styles.statValue}>{ts.max}s</Text>
+                <Text style={styles.statLabel}>{t.statMax}</Text>
+              </View>
+            </View>
+          )}
         </View>
       </View>
     );
@@ -287,6 +314,7 @@ const styles = StyleSheet.create({
   },
   tableBadgeText: { fontSize: 11, fontWeight: '700', color: '#E67E22' },
   rowBottom: { flexDirection: 'row', justifyContent: 'space-between' },
+  rowBottom2: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#f5f5f5' },
   stat: { alignItems: 'center', flex: 1 },
   statValue: { fontSize: 15, fontWeight: '800', color: '#333' },
   statLabel: { fontSize: 11, color: '#999', marginTop: 2 },

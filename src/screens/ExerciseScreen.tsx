@@ -25,6 +25,8 @@ export default function ExerciseScreen({ navigation, route }: Props) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const timerAnim = useRef(new Animated.Value(1)).current;
   const startTime = useRef(Date.now());
+  const questionStartTime = useRef(Date.now());
+  const timings = useRef<number[]>([]);
   const hiddenInputRef = useRef<TextInput>(null);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   // Always-current ref so the timer setTimeout can call the latest submitTimeout
@@ -35,6 +37,14 @@ export default function ExerciseScreen({ navigation, route }: Props) {
   useEffect(() => {
     if (Platform.OS !== 'web') {
       hiddenInputRef.current?.focus();
+    }
+    // When feedback appears, record the time taken for this question
+    if (feedback !== null) {
+      const elapsed = Math.round((Date.now() - questionStartTime.current) / 1000);
+      timings.current = [...timings.current, elapsed];
+    } else {
+      // feedback cleared → new question starting
+      questionStartTime.current = Date.now();
     }
   }, [feedback]);
 
@@ -66,6 +76,7 @@ export default function ExerciseScreen({ navigation, route }: Props) {
         mode,
         tableFilter,
         mistakes: answered.filter(q => !q.correct).map(q => ({ a: q.a, b: q.b })),
+        timings: timings.current,
       });
     }
   }, [done]);
@@ -79,6 +90,7 @@ export default function ExerciseScreen({ navigation, route }: Props) {
       mode,
       tableFilter,
       mistakes: answered.filter(q => !q.correct).map(q => ({ a: q.a, b: q.b })),
+      timings: timings.current,
     });
   }
 

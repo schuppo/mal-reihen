@@ -25,16 +25,27 @@ function formatTime(s: number) {
   return m > 0 ? `${m}m ${sec}s` : `${sec}s`;
 }
 
+function calcTimingStats(timings: number[] | undefined): { min: number; max: number; median: number } | null {
+  if (!timings || timings.length === 0) return null;
+  const sorted = [...timings].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  const median = sorted.length % 2 === 0
+    ? Math.round((sorted[mid - 1] + sorted[mid]) / 2)
+    : sorted[mid];
+  return { min: sorted[0], max: sorted[sorted.length - 1], median };
+}
+
 export default function ResultScreen({ navigation, route }: Props) {
-  const { correct, total, timeSeconds, mode, tableFilter, mistakes } = route.params;
+  const { correct, total, timeSeconds, mode, tableFilter, mistakes, timings } = route.params;
   const { language } = useSettings();
   const t = useTranslations(language);
   const { currentUser } = useUser();
   const pct = Math.round((correct / total) * 100);
   const { emoji, label, color } = grade(pct, t);
+  const timingStats = calcTimingStats(timings);
 
   useEffect(() => {
-    saveScore({ correct, total, timeSeconds, mode, tableFilter, mistakes }, currentUser?.id);
+    saveScore({ correct, total, timeSeconds, mode, tableFilter, mistakes, timings }, currentUser?.id);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -72,6 +83,23 @@ export default function ResultScreen({ navigation, route }: Props) {
               <Text style={styles.statLabel}>{t.mistakes}</Text>
             </View>
           </View>
+
+          {timingStats && (
+            <View style={styles.statsRow2}>
+              <View style={styles.stat}>
+                <Text style={styles.statNum}>{timingStats.min}s</Text>
+                <Text style={styles.statLabel}>{t.statMin}</Text>
+              </View>
+              <View style={styles.stat}>
+                <Text style={styles.statNum}>{timingStats.median}s</Text>
+                <Text style={styles.statLabel}>{t.statMedian}</Text>
+              </View>
+              <View style={styles.stat}>
+                <Text style={styles.statNum}>{timingStats.max}s</Text>
+                <Text style={styles.statLabel}>{t.statMax}</Text>
+              </View>
+            </View>
+          )}
         </View>
 
         <TouchableOpacity
@@ -124,6 +152,7 @@ const styles = StyleSheet.create({
   scoreSubtext: { fontSize: 14, color: '#aaa', marginBottom: 24 },
   divider: { width: '100%', height: 1, backgroundColor: '#f0f0f0', marginBottom: 24 },
   statsRow: { flexDirection: 'row', justifyContent: 'space-around', width: '100%' },
+  statsRow2: { flexDirection: 'row', justifyContent: 'space-around', width: '100%', marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: '#f0f0f0' },
   stat: { alignItems: 'center' },
   statNum: { fontSize: 22, fontWeight: '800', color: '#333' },
   statLabel: { fontSize: 12, color: '#999', marginTop: 2 },
