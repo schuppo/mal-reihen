@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import {
-  View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Platform,
+  View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Platform, ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -12,6 +12,59 @@ import { useTranslations } from '../i18n/translations';
 import { useUser } from '../context/UserContext';
 
 type Props = StackScreenProps<RootStackParamList, 'Scoreboard'>;
+
+const RANK_COLORS = ['#E74C3C', '#E67E22', '#F1C40F', '#aaa', '#bbb'];
+const TOP_N = 5;
+
+/** Aggregate all wrong answers across entries → sorted top-N pairs. */
+function buildTopMistakes(scores: ScoreEntry[]): { a: number; b: number; count: number }[] {
+  const map: Record<string, number> = {};
+  for (const entry of scores) {
+    for (const { a, b } of entry.mistakes ?? []) {
+      const key = `${a}x${b}`;
+      map[key] = (map[key] ?? 0) + 1;
+    }
+  }
+  return Object.entries(map)
+    .map(([key, count]) => {
+      const [a, b] = key.split('x').map(Number);
+      return { a, b, count };
+    })
+    .sort((x, y) => y.count - x.count)
+    .slice(0, TOP_N);
+}
+
+function TroubleSpots({ scores, t }: { scores: ScoreEntry[]; t: ReturnType<typeof useTranslations> }) {
+  const top = buildTopMistakes(scores);
+  const maxCount = top[0]?.count ?? 1;
+
+  return (
+    <View style={tsStyles.container}>
+      <Text style={tsStyles.title}>{t.scoreboardHeatmapTitle}</Text>
+      {top.length === 0 ? (
+        <Text style={tsStyles.empty}>{t.scoreboardHeatmapEmpty}</Text>
+      ) : (
+        top.map(({ a, b, count }, i) => {
+          const barWidth = `${Math.round((count / maxCount) * 100)}%` as any;
+          return (
+            <View key={`${a}x${b}`} style={tsStyles.item}>
+              <View style={[tsStyles.rankBadge, { backgroundColor: RANK_COLORS[i] }]}>
+                <Text style={tsStyles.rankNumber}>{i + 1}</Text>
+              </View>
+              <Text style={tsStyles.question}>{a} × {b} = {a * b}</Text>
+              <View style={tsStyles.barTrack}>
+                <View style={[tsStyles.barFill, { width: barWidth }]} />
+              </View>
+              <View style={tsStyles.badge}>
+                <Text style={tsStyles.badgeText}>×{count}</Text>
+              </View>
+            </View>
+          );
+        })
+      )}
+    </View>
+  );
+}
 
 function formatTime(s: number) {
   const m = Math.floor(s / 60);
@@ -134,18 +187,20 @@ export default function ScoreboardScreen({ navigation }: Props) {
           </View>
         </View>
       )}
-      <FlatList
-        data={scores}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        contentContainerStyle={scores.length === 0 ? styles.emptyContainer : styles.listContent}
-        ListEmptyComponent={
+      <ScrollView contentContainerStyle={scores.length === 0 ? styles.emptyContainer : styles.listContent}>
+        <TroubleSpots scores={scores} t={t} />
+
+        {scores.length === 0 ? (
           <View style={styles.emptyInner}>
             <Text style={styles.emptyEmoji}>🏅</Text>
             <Text style={styles.emptyText}>{t.scoreboardEmpty}</Text>
           </View>
-        }
-      />
+        ) : (
+          scores.map((item, index) => (
+            <View key={item.id}>{renderItem({ item, index })}</View>
+          ))
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -235,4 +290,77 @@ const styles = StyleSheet.create({
   stat: { alignItems: 'center', flex: 1 },
   statValue: { fontSize: 15, fontWeight: '800', color: '#333' },
   statLabel: { fontSize: 11, color: '#999', marginTop: 2 },
+});
+
+const tsStyles = StyleSheet.create({
+  container: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#6C63FF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  title: {
+    fontSize: 17,
+    fontWeight: '900',
+    color: '#333',
+    marginBottom: 12,
+  },
+  empty: {
+    fontSize: 13,
+    color: '#aaa',
+    textAlign: 'center',
+    paddingVertical: 8,
+  },
+  item: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+    gap: 8,
+  },
+  rankBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rankNumber: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#fff',
+  },
+  question: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#333',
+    width: 90,
+  },
+  barTrack: {
+    flex: 1,
+    height: 10,
+    backgroundColor: '#F0EFFF',
+    borderRadius: 5,
+    overflow: 'hidden',
+  },
+  barFill: {
+    height: '100%',
+    backgroundColor: '#6C63FF',
+    borderRadius: 5,
+  },
+  badge: {
+    backgroundColor: '#FFE8E8',
+    borderRadius: 8,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#E74C3C',
+  },
 });

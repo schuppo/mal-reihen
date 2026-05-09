@@ -65,6 +65,7 @@ export default function ExerciseScreen({ navigation, route }: Props) {
         timeSeconds: elapsed,
         mode,
         tableFilter,
+        mistakes: answered.filter(q => !q.correct).map(q => ({ a: q.a, b: q.b })),
       });
     }
   }, [done]);
@@ -77,6 +78,7 @@ export default function ExerciseScreen({ navigation, route }: Props) {
       timeSeconds: elapsed,
       mode,
       tableFilter,
+      mistakes: answered.filter(q => !q.correct).map(q => ({ a: q.a, b: q.b })),
     });
   }
 

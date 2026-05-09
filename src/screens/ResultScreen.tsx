@@ -26,7 +26,7 @@ function formatTime(s: number) {
 }
 
 export default function ResultScreen({ navigation, route }: Props) {
-  const { correct, total, timeSeconds, mode, tableFilter } = route.params;
+  const { correct, total, timeSeconds, mode, tableFilter, mistakes } = route.params;
   const { language } = useSettings();
   const t = useTranslations(language);
   const { currentUser } = useUser();
@@ -34,7 +34,7 @@ export default function ResultScreen({ navigation, route }: Props) {
   const { emoji, label, color } = grade(pct, t);
 
   useEffect(() => {
-    saveScore({ correct, total, timeSeconds, mode, tableFilter }, currentUser?.id);
+    saveScore({ correct, total, timeSeconds, mode, tableFilter, mistakes }, currentUser?.id);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

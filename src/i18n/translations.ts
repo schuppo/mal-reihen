@@ -48,6 +48,8 @@ export interface Translations {
   scoreboardModeTest: string;
   scoreboardModeTraining: string;
   scoreboardTableAll: string;
+  scoreboardHeatmapTitle: string;
+  scoreboardHeatmapEmpty: string;
   // Auth (LoginScreen / RegisterScreen)
   loginTitle: string;
   registerTitle: string;
@@ -125,6 +127,8 @@ const translations: Record<Language, Translations> = {
     scoreboardModeTest: '🏆 Test',
     scoreboardModeTraining: '🎓 Training',
     scoreboardTableAll: 'All',
+    scoreboardHeatmapTitle: '🎯 Keep Practicing',
+    scoreboardHeatmapEmpty: 'Complete a session to see which tasks are worth extra practice!',
     // Auth
     loginTitle: 'Welcome back',
     registerTitle: 'Create Account',
@@ -200,6 +204,8 @@ const translations: Record<Language, Translations> = {
     scoreboardModeTest: '🏆 Test',
     scoreboardModeTraining: '🎓 Training',
     scoreboardTableAll: 'Alle',
+    scoreboardHeatmapTitle: '🎯 Hier übe ich noch',
+    scoreboardHeatmapEmpty: 'Mach eine Übung, um zu sehen, welche Aufgaben noch etwas Übung brauchen!',
     // Auth
     loginTitle: 'Willkommen zurück',
     registerTitle: 'Konto erstellen',

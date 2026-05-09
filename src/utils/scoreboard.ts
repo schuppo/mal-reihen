@@ -8,6 +8,7 @@ export interface ScoreEntry {
   timeSeconds: number;
   mode: 'training' | 'test';
   tableFilter: number[] | 'all';
+  mistakes?: { a: number; b: number }[];
 }
 
 const MAX_ENTRIES = 50;
