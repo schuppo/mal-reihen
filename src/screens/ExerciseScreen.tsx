@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  View, Text, StyleSheet, Animated, Platform, TextInput,
+  View, Text, StyleSheet, Animated, Platform, TextInput, TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StackScreenProps } from '@react-navigation/stack';
@@ -68,6 +68,17 @@ export default function ExerciseScreen({ navigation, route }: Props) {
       });
     }
   }, [done]);
+
+  function handleFinishTraining() {
+    const elapsed = Math.round((Date.now() - startTime.current) / 1000);
+    navigation.replace('Result', {
+      correct: correctCount,
+      total: answered.length,
+      timeSeconds: elapsed,
+      mode,
+      tableFilter,
+    });
+  }
 
   // Shake animation on wrong answer — skip on initial mount (feedback starts null in real usage)
   const isMounted = useRef(false);
@@ -213,6 +224,17 @@ export default function ExerciseScreen({ navigation, route }: Props) {
           disabled={!!feedback}
         />
 
+        {/* Finish button — training mode only, after at least 1 answer */}
+        {mode === 'training' && answered.length > 0 && (
+          <TouchableOpacity
+            style={styles.finishBtn}
+            onPress={handleFinishTraining}
+            testID="finish-training-btn"
+          >
+            <Text style={styles.finishBtnText}>{t.finishTraining}</Text>
+          </TouchableOpacity>
+        )}
+
         {/* Hidden TextInput to capture hardware keyboard on native */}
         {Platform.OS !== 'web' && (
           <TextInput
@@ -339,6 +361,19 @@ const styles = StyleSheet.create({
   },
   correctText: { color: '#2ECC71' },
   wrongText: { color: '#E74C3C' },
+  finishBtn: {
+    paddingHorizontal: 28,
+    paddingVertical: 12,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: '#6C63FF',
+    backgroundColor: 'transparent',
+  },
+  finishBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#6C63FF',
+  },
   hiddenInput: {
     position: 'absolute',
     width: 0,

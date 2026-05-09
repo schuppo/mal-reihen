@@ -20,6 +20,7 @@ export interface Translations {
   mistakes: string;
   tryAgain: string;
   home: string;
+  finishTraining: string;
   gradePerfect: string;
   gradeGreat: string;
   gradeGood: string;
@@ -94,6 +95,7 @@ const translations: Record<Language, Translations> = {
     mistakes: 'Mistakes',
     tryAgain: '🔁 Try Again',
     home: '🏠 Home',
+    finishTraining: 'Finish Training',
     gradePerfect: 'Perfect!',
     gradeGreat: 'Great job!',
     gradeGood: 'Good effort!',
@@ -168,6 +170,7 @@ const translations: Record<Language, Translations> = {
     mistakes: 'Fehler',
     tryAgain: '🔁 Nochmal',
     home: '🏠 Home',
+    finishTraining: 'Training beenden',
     gradePerfect: 'Perfekt!',
     gradeGreat: 'Super gemacht!',
     gradeGood: 'Gute Leistung!',

@@ -64,6 +64,10 @@ export default function ResultScreen({ navigation, route }: Props) {
               <Text style={styles.statLabel}>{t.time}</Text>
             </View>
             <View style={styles.stat}>
+              <Text style={styles.statNum}>{(timeSeconds / total).toFixed(1)}s</Text>
+              <Text style={styles.statLabel}>{t.scoreboardTimePerAnswer}</Text>
+            </View>
+            <View style={styles.stat}>
               <Text style={styles.statNum}>{total - correct}</Text>
               <Text style={styles.statLabel}>{t.mistakes}</Text>
             </View>
