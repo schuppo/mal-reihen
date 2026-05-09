@@ -1,14 +1,16 @@
-# ✖️ Times Rows
+# ✖️ Mal-Reihen
 
-A mobile-first app for practising multiplication tables from 1×1 to 10×10, built with Expo and React Native. Runs on iOS, Android, and Web.
+A mobile-first app for practising multiplication tables from 1×1 to 10×10, built with Expo and React Native. Runs on iOS, Android, and Web. Designed with kids in mind.
 
 ## Features
 
-- **Training mode** — unlimited practice with instant right/wrong feedback, a running score, and **weighted question selection** (wrong answers appear more often; correct answers fade back)
-- **Test mode** — configurable number of questions with a final results screen (score, grade, elapsed time)
-- **Table filter** — pick a single multiplier (1–10) or all tables directly on the home screen
+- **Multiple user accounts** — password-free login; each player has their own profile, settings, and score history
+- **Training mode** — unlimited practice with instant right/wrong feedback, a running score, and **weighted question selection** (wrong answers appear more often; correct answers fade back). Finish early at any time to see your results.
+- **Test mode** — configurable number of questions with a final results screen (score, grade, elapsed time, avg per question)
+- **Multi-select table filter** — choose one, several, or all multipliers (1–10) directly on the home screen
 - **Per-question timer** — optional countdown that auto-submits as wrong when time runs out
-- **Scoreboard** — persistent high-score list (up to 50 entries) with grade, time, and mistake stats
+- **Scoreboard** — persistent session list (up to 50 entries) with grade, time, avg-per-question, and mistake stats
+- **"Hier übe ich noch" panel** — top 5 most-missed question pairs ranked by urgency (red → orange → yellow), with a relative bar and miss count. No shame, just practice focus.
 - **Settings** — customise test length, question timer, whether wrong answers reveal the correct answer, and UI language (English / Deutsch)
 - Custom numeric keypad for distraction-free input
 - Hardware keyboard support on all platforms (digits, Backspace, Enter)
@@ -42,29 +44,32 @@ npm run web        # Open in browser
 ## Project Structure
 
 ```
-App.tsx                      Navigation root, route types, SettingsProvider
+App.tsx                      Navigation root, route types, UserProvider, SettingsProvider
 src/
   context/
-    SettingsContext.tsx       Global settings state (testLength, questionTimer, showCorrectAnswer, language)
+    UserContext.tsx           Auth state; login/register/logout/saveSettings/deleteAccount
+    SettingsContext.tsx        Per-user settings state (testLength, questionTimer, showCorrectAnswer, language)
   screens/
-    HomeScreen.tsx           App entry point; table-filter picker + mode cards; links to Scoreboard, Settings
-    ExerciseScreen.tsx       Question UI with NumPad, timer bar, and animations
-    ResultScreen.tsx         End-of-test summary with grade; saves score to scoreboard
-    ScoreboardScreen.tsx     Persistent high-score list (ranked by recency)
-    SettingsScreen.tsx       Settings UI (chips + toggle + language picker)
+    LoginScreen.tsx           Password-free auth; account-list cards (login) + username form (register)
+    HomeScreen.tsx            App entry point; multi-select table-filter + mode cards; header: Scoreboard, Settings, Logout
+    ExerciseScreen.tsx        Question UI with NumPad, timer bar, animations, and Finish Training button
+    ResultScreen.tsx          End-of-session summary with grade, avg/question; saves score+mistakes to scoreboard
+    ScoreboardScreen.tsx      Session history + "Hier übe ich noch" trouble-spots panel
+    SettingsScreen.tsx        Settings UI (chips + toggle + language picker + delete account)
   hooks/
-    useExercise.ts           All game logic, state, and weighted question selection (training)
+    useExercise.ts            All game logic, state, and weighted question selection (training)
   components/
-    NumPad.tsx               Digit-entry pad (0–9, ⌫, ✓)
+    NumPad.tsx                Digit-entry pad (0–9, ⌫, ✓)
   i18n/
-    translations.ts          Bilingual strings (en/de); useTranslations(language) hook
+    translations.ts           Bilingual strings (en/de); useTranslations(language) hook
   utils/
-    scoreboard.ts            AsyncStorage-backed score persistence
+    users.ts                  AsyncStorage-backed user store; password-free registerUser/loginUser
+    scoreboard.ts             AsyncStorage-backed score persistence; per-user keyed storage
 ```
 
 ## Settings
 
-Tap ⚙️ on the Home or Intro screen to open Settings.
+Tap ⚙️ on the Home screen to open Settings.
 
 | Setting | Default | Options |
 |---|---|---|
@@ -142,13 +147,25 @@ Then run `npm run ios` again.
 | React Native 0.83 | Cross-platform UI |
 | React Navigation (Stack) | Screen navigation |
 | react-native-web | Browser support |
-| AsyncStorage | Scoreboard persistence |
+| AsyncStorage | User, settings & scoreboard persistence |
 
 ## Type Checking & Testing
 
 ```bash
 npx tsc --noEmit   # TypeScript check
-npm test           # Jest test suite
+npm test           # Jest test suite (102 tests)
 ```
 
-Tests use `@testing-library/react-native` with `jest-expo`. Coverage includes hook logic (`useExercise.test.ts`), component behaviour (`ExerciseScreen.test.tsx`), rendering of settings (`ExerciseScreen.showCorrectAnswer.test.tsx`), context state (`SettingsContext.test.tsx`), and scoreboard utilities (`scoreboard.test.ts`).
+Tests use `@testing-library/react-native` with `jest-expo`. Coverage includes:
+
+| File | What's tested |
+|---|---|
+| `useExercise.test.ts` | All game logic: input, submit, timeout, weighted selection, tableFilter arrays, test/training completion |
+| `ExerciseScreen.test.tsx` | Keyboard wiring (native + web), question timer, test-mode completion, finish-training button |
+| `ExerciseScreen.showCorrectAnswer.test.tsx` | Rendering of the showCorrectAnswer setting (module-scoped mock) |
+| `UserContext.test.tsx` | register, login, logout, saveSettings, deleteAccount, session restore |
+| `SettingsContext.test.tsx` | Defaults, all setters, onSave callback |
+| `LoginScreen.test.tsx` | Account-list display, login-by-tap, register flow, error states, mode toggle |
+| `NumPad.test.tsx` | All 12 keys, callbacks, disabled state |
+| `users.test.ts` | registerUser, loginUser, updateUserSettings, session helpers |
+| `scoreboard.test.ts` | loadScores, saveScore (ordering, cap), clearScores |
