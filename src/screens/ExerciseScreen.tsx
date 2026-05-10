@@ -1,397 +1,216 @@
-import React, { useEffect, useRef, useState } from 'react';
-import {
-  View, Text, StyleSheet, Animated, Platform, TextInput, TouchableOpacity,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { StackScreenProps } from '@react-navigation/stack';
-import { RootStackParamList } from '../../App';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useExercise } from '../hooks/useExercise';
 import NumPad from '../components/NumPad';
 import { useSettings } from '../context/SettingsContext';
 import { useTranslations } from '../i18n/translations';
 
-type Props = StackScreenProps<RootStackParamList, 'Exercise'>;
+interface ExerciseParams {
+  mode: 'training' | 'test';
+  tableFilter: number[] | 'all';
+}
 
-export default function ExerciseScreen({ navigation, route }: Props) {
-  const { mode, tableFilter } = route.params;
+export default function ExerciseScreen() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const params = location.state as ExerciseParams | undefined;
+
+  if (!params) return <Navigate to="/" replace />;
+
+  const { mode, tableFilter } = params;
   const { testLength: TEST_LENGTH, questionTimer, showCorrectAnswer, language } = useSettings();
   const t = useTranslations(language);
+
   const {
     current, input, feedback, answered, done,
     correctCount, appendDigit, backspace, submit, submitTimeout, progress,
   } = useExercise(mode, TEST_LENGTH, tableFilter);
 
-  const shakeAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-  const timerAnim = useRef(new Animated.Value(1)).current;
   const startTime = useRef(Date.now());
   const questionStartTime = useRef(Date.now());
   const timings = useRef<number[]>([]);
-  const hiddenInputRef = useRef<TextInput>(null);
-  const [timeLeft, setTimeLeft] = useState<number | null>(null);
-  // Always-current ref so the timer setTimeout can call the latest submitTimeout
   const submitTimeoutRef = useRef(submitTimeout);
   useEffect(() => { submitTimeoutRef.current = submitTimeout; }, [submitTimeout]);
 
-  // Keep hidden TextInput focused on native so hardware keyboard works
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const [timerPct, setTimerPct] = useState(100);
+  const [animClass, setAnimClass] = useState('');
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // Record per-question timing
   useEffect(() => {
-    if (Platform.OS !== 'web') {
-      hiddenInputRef.current?.focus();
-    }
-    // When feedback appears, record the time taken for this question
     if (feedback !== null) {
       const elapsed = Math.round((Date.now() - questionStartTime.current) / 1000);
       timings.current = [...timings.current, elapsed];
     } else {
-      // feedback cleared → new question starting
       questionStartTime.current = Date.now();
     }
   }, [feedback]);
 
-  // Web keyboard handler
-  useEffect(() => {
-    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
-    const win = window;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key >= '0' && e.key <= '9') {
-        appendDigit(e.key);
-      } else if (e.key === 'Backspace') {
-        backspace();
-      } else if (e.key === 'Enter') {
-        submit();
-      }
-    };
-    win.addEventListener('keydown', handler);
-    return () => win.removeEventListener('keydown', handler);
-  }, [appendDigit, backspace, submit]);
-
-  // Navigate to result screen when test is done
+  // Navigate to result when test done
   useEffect(() => {
     if (done) {
       const elapsed = Math.round((Date.now() - startTime.current) / 1000);
-      navigation.replace('Result', {
-        correct: correctCount,
-        total: TEST_LENGTH,
-        timeSeconds: elapsed,
-        mode,
-        tableFilter,
-        mistakes: answered.filter(q => !q.correct).map(q => ({ a: q.a, b: q.b })),
-        timings: timings.current,
+      navigate('/result', {
+        replace: true,
+        state: {
+          correct: correctCount,
+          total: TEST_LENGTH,
+          timeSeconds: elapsed,
+          mode,
+          tableFilter,
+          mistakes: answered.filter(q => !q.correct).map(q => ({ a: q.a, b: q.b })),
+          timings: timings.current,
+        },
       });
     }
   }, [done]);
 
   function handleFinishTraining() {
     const elapsed = Math.round((Date.now() - startTime.current) / 1000);
-    navigation.replace('Result', {
-      correct: correctCount,
-      total: answered.length,
-      timeSeconds: elapsed,
-      mode,
-      tableFilter,
-      mistakes: answered.filter(q => !q.correct).map(q => ({ a: q.a, b: q.b })),
-      timings: timings.current,
+    navigate('/result', {
+      replace: true,
+      state: {
+        correct: correctCount,
+        total: answered.length,
+        timeSeconds: elapsed,
+        mode,
+        tableFilter,
+        mistakes: answered.filter(q => !q.correct).map(q => ({ a: q.a, b: q.b })),
+        timings: timings.current,
+      },
     });
   }
 
-  // Shake animation on wrong answer — skip on initial mount (feedback starts null in real usage)
+  // CSS animations on feedback
   const isMounted = useRef(false);
   useEffect(() => {
     if (!isMounted.current) { isMounted.current = true; return; }
     if (feedback === 'wrong') {
-      Animated.sequence([
-        Animated.timing(shakeAnim, { toValue: 10, duration: 60, useNativeDriver: true }),
-        Animated.timing(shakeAnim, { toValue: -10, duration: 60, useNativeDriver: true }),
-        Animated.timing(shakeAnim, { toValue: 8, duration: 60, useNativeDriver: true }),
-        Animated.timing(shakeAnim, { toValue: -8, duration: 60, useNativeDriver: true }),
-        Animated.timing(shakeAnim, { toValue: 0, duration: 60, useNativeDriver: true }),
-      ]).start();
+      setAnimClass('anim-shake');
+      setTimeout(() => setAnimClass(''), 400);
     }
     if (feedback === 'correct') {
-      Animated.sequence([
-        Animated.timing(scaleAnim, { toValue: 1.15, duration: 150, useNativeDriver: true }),
-        Animated.timing(scaleAnim, { toValue: 1, duration: 150, useNativeDriver: true }),
-      ]).start();
+      setAnimClass('anim-pop');
+      setTimeout(() => setAnimClass(''), 300);
     }
   }, [feedback]);
 
-  // Question timer countdown
+  // Question timer
   useEffect(() => {
-    if (questionTimer === null || feedback) {
-      setTimeLeft(null);
-      return;
-    }
+    if (questionTimer === null || feedback) { setTimeLeft(null); setTimerPct(100); return; }
     setTimeLeft(questionTimer);
-    timerAnim.setValue(1);
-    Animated.timing(timerAnim, {
-      toValue: 0,
-      duration: questionTimer * 1000,
-      useNativeDriver: false,
-    }).start();
+    setTimerPct(100);
+
+    const startMs = Date.now();
+    const totalMs = questionTimer * 1000;
 
     const interval = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev === null) return null;
-        if (prev <= 1) return 0;
-        return prev - 1;
-      });
-    }, 1000);
+      const elapsed = Date.now() - startMs;
+      const remaining = Math.max(0, questionTimer - Math.floor(elapsed / 1000));
+      const pct = Math.max(0, ((totalMs - elapsed) / totalMs) * 100);
+      setTimeLeft(remaining);
+      setTimerPct(pct);
+    }, 100);
 
-    const timeout = setTimeout(() => {
-      submitTimeoutRef.current();
-    }, questionTimer * 1000);
+    const timeout = setTimeout(() => { submitTimeoutRef.current(); }, totalMs);
 
-    return () => {
-      clearInterval(interval);
-      clearTimeout(timeout);
-      timerAnim.stopAnimation();
-    };
+    return () => { clearInterval(interval); clearTimeout(timeout); };
   }, [current, feedback, questionTimer]);
 
-  const bgColor = feedback === 'correct'
-    ? '#E8FFF0'
-    : feedback === 'wrong'
-      ? '#FFE8E8'
-      : '#F0EFFF';
+  // Keyboard handler
+  const handleKey = useCallback((e: KeyboardEvent) => {
+    if (e.key >= '0' && e.key <= '9') appendDigit(e.key);
+    else if (e.key === 'Backspace') backspace();
+    else if (e.key === 'Enter') submit();
+  }, [appendDigit, backspace, submit]);
 
+  useEffect(() => {
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [handleKey]);
+
+  const bgColor = feedback === 'correct' ? '#E8FFF0' : feedback === 'wrong' ? '#FFE8E8' : '#F0EFFF';
   const timerDanger = timeLeft !== null && questionTimer !== null && timeLeft <= Math.ceil(questionTimer * 0.3);
   const timerColor = timerDanger ? '#E74C3C' : '#6C63FF';
 
-  return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: bgColor }]}>
-      <View style={[styles.container, { backgroundColor: bgColor }]}>
+  const headerTitle = mode === 'training' ? '🎓 Training' : '🏆 Test';
 
-        {/* Progress bar (test mode) */}
+  return (
+    <div style={{ height: '100%', background: bgColor, display: 'flex', flexDirection: 'column', transition: 'background 0.3s' }}>
+      {/* Header */}
+      <div style={{ background: '#6C63FF', padding: '12px 20px', paddingTop: 'calc(12px + env(safe-area-inset-top))', display: 'flex', alignItems: 'center' }}>
+        <button style={{ background: 'none', border: 'none', color: '#fff', fontSize: 18, cursor: 'pointer', marginRight: 12 }} onClick={() => navigate('/')}>←</button>
+        <span style={{ color: '#fff', fontSize: 20, fontWeight: 800 }}>{headerTitle}</span>
+      </div>
+
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-evenly', padding: 16, overflowY: 'auto' }}>
+        {/* Progress bar — test mode */}
         {mode === 'test' && (
-          <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: `${(progress ?? 0) * 100}%` as any }]} />
-            <Text style={styles.progressText}>
-              {answered.length} / {TEST_LENGTH}
-            </Text>
-          </View>
+          <div style={{ width: '100%', maxWidth: 360, position: 'relative' }}>
+            <div style={{ height: 10, background: '#ddd', borderRadius: 10, overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${(progress ?? 0) * 100}%`, background: '#6C63FF', borderRadius: 10, transition: 'width 0.3s' }} />
+            </div>
+            <span style={{ position: 'absolute', right: 0, top: 14, fontSize: 12, color: '#999' }}>{answered.length} / {TEST_LENGTH}</span>
+          </div>
         )}
 
         {/* Training score */}
         {mode === 'training' && answered.length > 0 && (
-          <Text style={styles.scoreText}>
-            ✅ {correctCount} / {answered.length}
-          </Text>
+          <p style={{ fontSize: 18, fontWeight: 700, color: '#6C63FF' }}>✅ {correctCount} / {answered.length}</p>
         )}
 
         {/* Question card */}
-        <Animated.View style={[
-          styles.questionCard,
-          { transform: [{ translateX: shakeAnim }, { scale: scaleAnim }] },
-        ]}>
-
-          {/* Timer bar inside card */}
+        <div
+          ref={cardRef}
+          className={animClass}
+          style={{ background: '#fff', borderRadius: 28, paddingTop: 0, paddingBottom: 32, paddingLeft: 40, paddingRight: 40, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: 360, boxShadow: '0 8px 32px rgba(108,99,255,0.15)', minHeight: 200, overflow: 'hidden' }}
+        >
+          {/* Timer bar */}
           {questionTimer !== null && (
-            <View style={styles.timerTrack}>
-              <Animated.View style={[
-                styles.timerFill,
-                {
-                  width: timerAnim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }),
-                  backgroundColor: timerColor,
-                },
-              ]} />
+            <div style={{ width: 'calc(100% + 80px)', height: 6, background: '#eee', marginBottom: 24, position: 'relative', alignSelf: 'stretch', marginLeft: -40, marginRight: -40 }}>
+              <div style={{ height: '100%', width: `${timerPct}%`, background: timerColor, transition: 'background 0.5s' }} />
               {timeLeft !== null && !feedback && (
-                <Text style={[styles.timerLabel, { color: timerColor }]}>{timeLeft}s</Text>
+                <span style={{ position: 'absolute', right: 8, top: 9, fontSize: 11, fontWeight: 700, color: timerColor }}>{timeLeft}s</span>
               )}
-            </View>
+            </div>
           )}
 
-          <Text style={styles.questionText}>
+          <p style={{ fontSize: 52, fontWeight: 900, color: '#333', letterSpacing: 2, marginBottom: 16 }}>
             {current.a} × {current.b} = ?
-          </Text>
-          <View style={styles.inputBox}>
-            <Text
-              testID="input-display"
-              style={[
-              styles.inputText,
-              !input && styles.inputPlaceholder,
-            ]}>
+          </p>
+
+          <div style={{ width: 120, height: 64, borderRadius: 16, border: '3px solid #6C63FF', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F8F7FF' }}>
+            <span data-testid="input-display" style={{ fontSize: 36, fontWeight: 800, color: input ? '#333' : '#ccc' }}>
               {input || '…'}
-            </Text>
-          </View>
+            </span>
+          </div>
 
           {feedback && (
-            <Text
-              testID="feedback-text"
-              style={[
-              styles.feedbackText,
-              feedback === 'correct' ? styles.correctText : styles.wrongText,
-            ]}>
+            <p data-testid="feedback-text" style={{ marginTop: 16, fontSize: 20, fontWeight: 700, color: feedback === 'correct' ? '#2ECC71' : '#E74C3C' }}>
               {feedback === 'correct'
                 ? t.feedbackCorrect
                 : showCorrectAnswer
                   ? t.feedbackWrongWithAnswer(current.a, current.b, current.answer)
                   : t.feedbackWrong}
-            </Text>
+            </p>
           )}
-        </Animated.View>
+        </div>
 
         {/* NumPad */}
-        <NumPad
-          onDigit={appendDigit}
-          onBackspace={backspace}
-          onConfirm={submit}
-          disabled={!!feedback}
-        />
+        <NumPad onDigit={appendDigit} onBackspace={backspace} onConfirm={submit} disabled={!!feedback} />
 
-        {/* Finish button — training mode only, after at least 1 answer */}
+        {/* Finish training button */}
         {mode === 'training' && answered.length > 0 && (
-          <TouchableOpacity
-            style={styles.finishBtn}
-            onPress={handleFinishTraining}
-            testID="finish-training-btn"
+          <button
+            data-testid="finish-training-btn"
+            style={{ padding: '12px 28px', borderRadius: 14, border: '2px solid #6C63FF', background: 'transparent', color: '#6C63FF', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}
+            onClick={handleFinishTraining}
           >
-            <Text style={styles.finishBtnText}>{t.finishTraining}</Text>
-          </TouchableOpacity>
+            {t.finishTraining}
+          </button>
         )}
-
-        {/* Hidden TextInput to capture hardware keyboard on native */}
-        {Platform.OS !== 'web' && (
-          <TextInput
-            ref={hiddenInputRef}
-            testID="hidden-keyboard-input"
-            style={styles.hiddenInput}
-            keyboardType="number-pad"
-            caretHidden
-            showSoftInputOnFocus={false}
-            onKeyPress={({ nativeEvent }) => {
-              const { key } = nativeEvent;
-              if (key >= '0' && key <= '9') appendDigit(key);
-              else if (key === 'Backspace') backspace();
-            }}
-            onSubmitEditing={submit}
-          />
-        )}
-      </View>
-    </SafeAreaView>
+      </div>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1 },
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'space-evenly',
-    padding: 16,
-  },
-  progressBar: {
-    width: '100%',
-    maxWidth: 360,
-    height: 10,
-    backgroundColor: '#ddd',
-    borderRadius: 10,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#6C63FF',
-    borderRadius: 10,
-  },
-  progressText: {
-    position: 'absolute',
-    right: 0,
-    top: 14,
-    fontSize: 12,
-    color: '#999',
-  },
-  scoreText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#6C63FF',
-  },
-  questionCard: {
-    backgroundColor: '#fff',
-    borderRadius: 28,
-    paddingVertical: 32,
-    paddingHorizontal: 40,
-    alignItems: 'center',
-    width: '100%',
-    maxWidth: 360,
-    shadowColor: '#6C63FF',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
-    elevation: 8,
-    minHeight: 200,
-    overflow: 'hidden',
-  },
-  timerTrack: {
-    width: '120%',
-    height: 6,
-    backgroundColor: '#eee',
-    borderRadius: 3,
-    marginBottom: 16,
-    position: 'relative',
-    alignSelf: 'stretch',
-    marginHorizontal: -40,
-    overflow: 'hidden',
-  },
-  timerFill: {
-    height: '100%',
-    borderRadius: 3,
-  },
-  timerLabel: {
-    position: 'absolute',
-    right: 8,
-    top: 9,
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  questionText: {
-    fontSize: 52,
-    fontWeight: '900',
-    color: '#333',
-    letterSpacing: 2,
-    marginBottom: 16,
-  },
-  inputBox: {
-    width: 120,
-    height: 64,
-    borderRadius: 16,
-    borderWidth: 3,
-    borderColor: '#6C63FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F8F7FF',
-  },
-  inputText: {
-    fontSize: 36,
-    fontWeight: '800',
-    color: '#333',
-  },
-  inputPlaceholder: {
-    color: '#ccc',
-  },
-  feedbackText: {
-    marginTop: 16,
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  correctText: { color: '#2ECC71' },
-  wrongText: { color: '#E74C3C' },
-  finishBtn: {
-    paddingHorizontal: 28,
-    paddingVertical: 12,
-    borderRadius: 14,
-    borderWidth: 2,
-    borderColor: '#6C63FF',
-    backgroundColor: 'transparent',
-  },
-  finishBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#6C63FF',
-  },
-  hiddenInput: {
-    position: 'absolute',
-    width: 0,
-    height: 0,
-    opacity: 0,
-  },
-});

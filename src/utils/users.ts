@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { storage } from './storage';
 import { Language } from '../i18n/translations';
 
 export interface UserSettings {
@@ -24,19 +24,15 @@ export interface User {
 const USERS_KEY = 'users';
 const SESSION_KEY = 'activeUserId';
 
-// ── User CRUD ─────────────────────────────────────────────────────────────────
-
 export async function loadUsers(): Promise<User[]> {
   try {
-    const raw = await AsyncStorage.getItem(USERS_KEY);
+    const raw = await storage.getItem(USERS_KEY);
     return raw ? (JSON.parse(raw) as User[]) : [];
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 }
 
 async function persistUsers(users: User[]): Promise<void> {
-  await AsyncStorage.setItem(USERS_KEY, JSON.stringify(users));
+  await storage.setItem(USERS_KEY, JSON.stringify(users));
 }
 
 export async function registerUser(
@@ -56,21 +52,12 @@ export async function registerUser(
   return { success: true, user };
 }
 
-export async function loginUser(
-  username: string,
-): Promise<User | null> {
+export async function loginUser(username: string): Promise<User | null> {
   const users = await loadUsers();
-  return (
-    users.find(
-      u => u.username.toLowerCase() === username.trim().toLowerCase(),
-    ) ?? null
-  );
+  return users.find(u => u.username.toLowerCase() === username.trim().toLowerCase()) ?? null;
 }
 
-export async function updateUserSettings(
-  userId: string,
-  settings: UserSettings,
-): Promise<void> {
+export async function updateUserSettings(userId: string, settings: UserSettings): Promise<void> {
   const users = await loadUsers();
   await persistUsers(users.map(u => (u.id === userId ? { ...u, settings } : u)));
 }
@@ -80,16 +67,14 @@ export async function deleteUser(userId: string): Promise<void> {
   await persistUsers(users.filter(u => u.id !== userId));
 }
 
-// ── Session ───────────────────────────────────────────────────────────────────
-
 export async function getSessionUserId(): Promise<string | null> {
-  return AsyncStorage.getItem(SESSION_KEY);
+  return storage.getItem(SESSION_KEY);
 }
 
 export async function setSessionUserId(userId: string): Promise<void> {
-  await AsyncStorage.setItem(SESSION_KEY, userId);
+  await storage.setItem(SESSION_KEY, userId);
 }
 
 export async function clearSession(): Promise<void> {
-  await AsyncStorage.removeItem(SESSION_KEY);
+  await storage.removeItem(SESSION_KEY);
 }

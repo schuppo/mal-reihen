@@ -8,3 +8,6 @@ coverage/
 ios/
 android/
 .expo/
+playwright-report/
+test-results/
+dist-e2e/

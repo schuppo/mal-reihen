@@ -1,8 +1,8 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { storage } from './storage';
 
 export interface ScoreEntry {
   id: string;
-  date: string; // ISO string
+  date: string;
   correct: number;
   total: number;
   timeSeconds: number;
@@ -20,28 +20,20 @@ function scoreKey(userId?: string) {
 
 export async function loadScores(userId?: string): Promise<ScoreEntry[]> {
   try {
-    const raw = await AsyncStorage.getItem(scoreKey(userId));
+    const raw = await storage.getItem(scoreKey(userId));
     return raw ? (JSON.parse(raw) as ScoreEntry[]) : [];
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 }
 
 export async function saveScore(entry: Omit<ScoreEntry, 'id' | 'date'>, userId?: string): Promise<void> {
   try {
     const existing = await loadScores(userId);
-    const newEntry: ScoreEntry = {
-      id: Date.now().toString(),
-      date: new Date().toISOString(),
-      ...entry,
-    };
+    const newEntry: ScoreEntry = { id: Date.now().toString(), date: new Date().toISOString(), ...entry };
     const updated = [newEntry, ...existing].slice(0, MAX_ENTRIES);
-    await AsyncStorage.setItem(scoreKey(userId), JSON.stringify(updated));
-  } catch {
-    // silently fail — scoreboard is non-critical
-  }
+    await storage.setItem(scoreKey(userId), JSON.stringify(updated));
+  } catch { /* silently fail */ }
 }
 
 export async function clearScores(userId?: string): Promise<void> {
-  await AsyncStorage.removeItem(scoreKey(userId));
+  await storage.removeItem(scoreKey(userId));
 }

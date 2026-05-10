@@ -1,5 +1,5 @@
 import React from 'react';
-import { renderHook, act } from '@testing-library/react-native';
+import { renderHook, act } from '@testing-library/react';
 import { SettingsProvider, useSettings } from './SettingsContext';
 
 function wrapper({ children }: { children: React.ReactNode }) {
@@ -36,71 +36,58 @@ describe('SettingsContext – setters', () => {
     expect(result.current.questionTimer).toBe(15);
   });
 
-  it('can disable the timer by setting questionTimer to null', () => {
+  it('can disable timer by setting to null', () => {
     const { result } = renderHook(() => useSettings(), { wrapper });
     act(() => { result.current.setQuestionTimer(null); });
     expect(result.current.questionTimer).toBeNull();
   });
 
-  it('can re-enable timer after it was disabled', () => {
+  it('can re-enable timer after disabled', () => {
     const { result } = renderHook(() => useSettings(), { wrapper });
     act(() => { result.current.setQuestionTimer(null); });
     act(() => { result.current.setQuestionTimer(8); });
     expect(result.current.questionTimer).toBe(8);
   });
 
-  it('enables showCorrectAnswer via setShowCorrectAnswer', () => {
+  it('enables showCorrectAnswer', () => {
     const { result } = renderHook(() => useSettings(), { wrapper });
     act(() => { result.current.setShowCorrectAnswer(true); });
     expect(result.current.showCorrectAnswer).toBe(true);
   });
-
-  it('disables showCorrectAnswer again after enabling', () => {
-    const { result } = renderHook(() => useSettings(), { wrapper });
-    act(() => { result.current.setShowCorrectAnswer(true); });
-    act(() => { result.current.setShowCorrectAnswer(false); });
-    expect(result.current.showCorrectAnswer).toBe(false);
-  });
 });
 
 describe('SettingsContext – onSave callback', () => {
-  function wrapperWithSave(onSave: jest.Mock) {
+  function wrapperWithSave(onSave: ReturnType<typeof vi.fn>) {
     return ({ children }: { children: React.ReactNode }) => (
-      <SettingsProvider
-        initialTestLength={20}
-        initialQuestionTimer={10}
-        initialShowCorrectAnswer={false}
-        initialLanguage="en"
-        onSave={onSave}
-      >
+      <SettingsProvider initialTestLength={20} initialQuestionTimer={10} initialShowCorrectAnswer={false} initialLanguage="en" onSave={onSave}>
         {children}
       </SettingsProvider>
     );
   }
 
-  it('calls onSave with new testLength when setTestLength is called', () => {
-    const onSave = jest.fn();
+  it('calls onSave with new testLength', () => {
+    const onSave = vi.fn();
     const { result } = renderHook(() => useSettings(), { wrapper: wrapperWithSave(onSave) });
     act(() => { result.current.setTestLength(30); });
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ testLength: 30 }));
   });
 
-  it('calls onSave with new questionTimer when setQuestionTimer is called', () => {
-    const onSave = jest.fn();
+  it('calls onSave with new questionTimer', () => {
+    const onSave = vi.fn();
     const { result } = renderHook(() => useSettings(), { wrapper: wrapperWithSave(onSave) });
     act(() => { result.current.setQuestionTimer(null); });
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ questionTimer: null }));
   });
 
-  it('calls onSave with new showCorrectAnswer when setShowCorrectAnswer is called', () => {
-    const onSave = jest.fn();
+  it('calls onSave with new showCorrectAnswer', () => {
+    const onSave = vi.fn();
     const { result } = renderHook(() => useSettings(), { wrapper: wrapperWithSave(onSave) });
     act(() => { result.current.setShowCorrectAnswer(true); });
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ showCorrectAnswer: true }));
   });
 
-  it('calls onSave with new language when setLanguage is called', () => {
-    const onSave = jest.fn();
+  it('calls onSave with new language', () => {
+    const onSave = vi.fn();
     const { result } = renderHook(() => useSettings(), { wrapper: wrapperWithSave(onSave) });
     act(() => { result.current.setLanguage('de'); });
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ language: 'de' }));

@@ -1,8 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View, Text, StyleSheet, TouchableOpacity, Switch, Alert, Platform, ScrollView,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigate } from 'react-router-dom';
 import { useSettings } from '../context/SettingsContext';
 import { useTranslations } from '../i18n/translations';
 import { useUser } from '../context/UserContext';
@@ -10,290 +7,112 @@ import { useUser } from '../context/UserContext';
 const LENGTH_OPTIONS = [5, 10, 15, 20, 25, 30];
 const TIMER_OPTIONS = [5, 8, 10, 15, 20, 30];
 
+function Chip({ selected, onClick, children, wide, lang }: { selected: boolean; onClick: () => void; children: React.ReactNode; wide?: boolean; lang?: boolean }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        width: lang ? 140 : wide ? 100 : 80,
+        height: lang ? 56 : 80,
+        borderRadius: 20, border: `2px solid ${selected ? '#6C63FF' : '#ddd'}`,
+        background: selected ? '#6C63FF' : '#fff', color: selected ? '#fff' : '#555',
+        fontSize: lang ? 16 : 22, fontWeight: 800, cursor: 'pointer',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
+      }}
+    >{children}</button>
+  );
+}
+
 export default function SettingsScreen() {
+  const navigate = useNavigate();
   const { testLength, setTestLength, questionTimer, setQuestionTimer, showCorrectAnswer, setShowCorrectAnswer, language, setLanguage } = useSettings();
   const t = useTranslations(language);
   const { deleteAccount } = useUser();
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  function handleDeleteAccount() {
-    if (Platform.OS === 'web') {
-      setConfirmDelete(true);
-    } else {
-      Alert.alert(t.deleteAccount, t.deleteAccountConfirm, [
-        { text: 'Cancel', style: 'cancel' },
-        { text: t.deleteAccount, style: 'destructive', onPress: deleteAccount },
-      ]);
-    }
-  }
+  const sep = <div style={{ height: 1, background: '#ddd', margin: '28px 0' }} />;
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.container}
-      >
+    <div style={{ height: '100%', background: '#F0EFFF', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ background: '#6C63FF', padding: '12px 20px', paddingTop: 'calc(12px + env(safe-area-inset-top))', display: 'flex', alignItems: 'center' }}>
+        <button style={{ background: 'none', border: 'none', color: '#fff', fontSize: 18, cursor: 'pointer', marginRight: 12 }} onClick={() => navigate('/')}>←</button>
+        <span style={{ color: '#fff', fontSize: 20, fontWeight: 800 }}>⚙️ Settings</span>
+      </div>
 
-        {/* ── Test Length ── */}
-        <Text style={styles.sectionTitle}>{t.settingsTestLength}</Text>
-        <Text style={styles.sectionDesc}>{t.settingsTestLengthDesc}</Text>
-        <View style={styles.grid}>
-          {LENGTH_OPTIONS.map(n => {
-            const selected = n === testLength;
-            return (
-              <TouchableOpacity
-                key={n}
-                style={[styles.chip, selected && styles.chipSelected]}
-                onPress={() => setTestLength(n)}
-                activeOpacity={0.8}
-              >
-                <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{n}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-        <Text style={styles.hint}>
-          {t.settingsTestLengthHint(testLength)}
-        </Text>
+      <div style={{ flex: 1, overflowY: 'auto', padding: 24, paddingBottom: 48, background: '#F0EFFF' }}>
 
-        <View style={styles.separator} />
+        {/* Test Length */}
+        <h2 style={{ fontSize: 22, fontWeight: 900, color: '#333', marginBottom: 6, marginTop: 8 }}>{t.settingsTestLength}</h2>
+        <p style={{ fontSize: 15, color: '#777', marginBottom: 20 }}>{t.settingsTestLengthDesc}</p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14 }}>
+          {LENGTH_OPTIONS.map(n => <Chip key={n} selected={n === testLength} onClick={() => setTestLength(n)}>{n}</Chip>)}
+        </div>
+        <p style={{ marginTop: 16, marginBottom: 4, fontSize: 14, color: '#999' }}>{t.settingsTestLengthHint(testLength)}</p>
 
-        {/* ── Question Timer ── */}
-        <Text style={styles.sectionTitle}>{t.settingsTimer}</Text>
-        <Text style={styles.sectionDesc}>
-          {t.settingsTimerDesc}
-        </Text>
+        {sep}
 
-        {/* Off chip */}
-        <View style={styles.grid}>
-          <TouchableOpacity
-            style={[styles.chip, styles.chipWide, questionTimer === null && styles.chipSelected]}
-            onPress={() => setQuestionTimer(null)}
-            activeOpacity={0.8}
+        {/* Question Timer */}
+        <h2 style={{ fontSize: 22, fontWeight: 900, color: '#333', marginBottom: 6, marginTop: 8 }}>{t.settingsTimer}</h2>
+        <p style={{ fontSize: 15, color: '#777', marginBottom: 20 }}>{t.settingsTimerDesc}</p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14 }}>
+          <Chip selected={questionTimer === null} onClick={() => setQuestionTimer(null)} wide>{t.settingsTimerOff}</Chip>
+          {TIMER_OPTIONS.map(s => <Chip key={s} selected={s === questionTimer} onClick={() => setQuestionTimer(s)}>{s}s</Chip>)}
+        </div>
+        <p style={{ marginTop: 16, marginBottom: 4, fontSize: 14, color: '#6C63FF', fontWeight: 800 }}>
+          {questionTimer === null ? t.settingsTimerHintOff : t.settingsTimerHint(questionTimer)}
+        </p>
+
+        {sep}
+
+        {/* Show Correct Answer */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+          <div style={{ flex: 1 }}>
+            <h2 style={{ fontSize: 22, fontWeight: 900, color: '#333', marginBottom: 6 }}>{t.settingsShowCorrect}</h2>
+            <p style={{ fontSize: 15, color: '#777' }}>{t.settingsShowCorrectDesc}</p>
+          </div>
+          <div
+            onClick={() => setShowCorrectAnswer(!showCorrectAnswer)}
+            style={{ width: 51, height: 31, borderRadius: 16, background: showCorrectAnswer ? '#6C63FF' : '#ddd', cursor: 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}
           >
-            <Text style={[styles.chipText, questionTimer === null && styles.chipTextSelected]}>
-              {t.settingsTimerOff}
-            </Text>
-          </TouchableOpacity>
+            <div style={{ position: 'absolute', top: 2, left: showCorrectAnswer ? 22 : 2, width: 27, height: 27, borderRadius: 14, background: '#fff', transition: 'left 0.2s', boxShadow: '0 1px 4px rgba(0,0,0,0.2)' }} />
+          </div>
+        </div>
 
-          {TIMER_OPTIONS.map(s => {
-            const selected = s === questionTimer;
-            return (
-              <TouchableOpacity
-                key={s}
-                style={[styles.chip, selected && styles.chipSelected]}
-                onPress={() => setQuestionTimer(s)}
-                activeOpacity={0.8}
-              >
-                <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{s}s</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+        {sep}
 
-        <Text style={styles.hint}>
-          {questionTimer === null
-            ? <Text style={styles.hintBold}>{t.settingsTimerHintOff}</Text>
-            : <Text style={styles.hintBold}>{t.settingsTimerHint(questionTimer)}</Text>}
-        </Text>
+        {/* Language */}
+        <h2 style={{ fontSize: 22, fontWeight: 900, color: '#333', marginBottom: 6 }}>{t.settingsLanguage}</h2>
+        <p style={{ fontSize: 15, color: '#777', marginBottom: 20 }}>{t.settingsLanguageDesc}</p>
+        <div style={{ display: 'flex', gap: 14 }}>
+          {(['en', 'de'] as const).map(lang => (
+            <Chip key={lang} selected={lang === language} onClick={() => setLanguage(lang)} lang>
+              {lang === 'en' ? t.settingsLangEn : t.settingsLangDe}
+            </Chip>
+          ))}
+        </div>
 
-        <View style={styles.separator} />
+        {sep}
 
-        {/* ── Show Correct Answer ── */}
-        <View style={styles.toggleRow}>
-          <View style={styles.toggleLabel}>
-            <Text style={styles.sectionTitle}>{t.settingsShowCorrect}</Text>
-            <Text style={styles.sectionDesc}>
-              {t.settingsShowCorrectDesc}
-            </Text>
-          </View>
-          <Switch
-            value={showCorrectAnswer}
-            onValueChange={setShowCorrectAnswer}
-            trackColor={{ false: '#ddd', true: '#6C63FF' }}
-            thumbColor="#fff"
-            testID="show-correct-answer-switch"
-          />
-        </View>
-
-        <View style={styles.separator} />
-
-        {/* ── Language ── */}
-        <Text style={styles.sectionTitle}>{t.settingsLanguage}</Text>
-        <Text style={styles.sectionDesc}>{t.settingsLanguageDesc}</Text>
-        <View style={styles.grid}>
-          {(['en', 'de'] as const).map(lang => {
-            const selected = lang === language;
-            const label = lang === 'en' ? t.settingsLangEn : t.settingsLangDe;
-            return (
-              <TouchableOpacity
-                key={lang}
-                style={[styles.chip, styles.chipLang, selected && styles.chipSelected]}
-                onPress={() => setLanguage(lang)}
-                activeOpacity={0.8}
-                testID={`language-chip-${lang}`}
-              >
-                <Text style={[styles.chipText, styles.chipTextLang, selected && styles.chipTextSelected]}>
-                  {label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        <View style={styles.separator} />
-
-        {/* ── Delete Account ── */}
+        {/* Delete Account */}
         {confirmDelete ? (
-          <View style={styles.confirmBar}>
-            <Text style={styles.confirmText}>{t.deleteAccountConfirm}</Text>
-            <View style={styles.confirmActions}>
-              <TouchableOpacity style={styles.confirmCancel} onPress={() => setConfirmDelete(false)}>
-                <Text style={styles.confirmCancelText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.confirmDelete} onPress={deleteAccount} testID="confirm-delete-account">
-                <Text style={styles.confirmDeleteText}>{t.deleteAccount}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+          <div style={{ background: '#fff', borderRadius: 16, padding: 16, border: '1px solid #FFD0D0' }}>
+            <p style={{ fontSize: 14, color: '#555', marginBottom: 12, textAlign: 'center' }}>{t.deleteAccountConfirm}</p>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button style={{ flex: 1, padding: '10px 0', borderRadius: 10, background: '#f5f5f5', border: 'none', fontWeight: 700, color: '#888', cursor: 'pointer' }} onClick={() => setConfirmDelete(false)}>Cancel</button>
+              <button style={{ flex: 1, padding: '10px 0', borderRadius: 10, background: '#E74C3C', border: 'none', fontWeight: 700, color: '#fff', cursor: 'pointer' }} onClick={deleteAccount} data-testid="confirm-delete-account">{t.deleteAccount}</button>
+            </div>
+          </div>
         ) : (
-          <TouchableOpacity style={styles.deleteBtn} onPress={handleDeleteAccount} testID="delete-account-btn">
-            <Text style={styles.deleteBtnTitle}>{t.deleteAccount}</Text>
-            <Text style={styles.deleteBtnDesc}>{t.deleteAccountDesc}</Text>
-          </TouchableOpacity>
+          <button
+            onClick={() => setConfirmDelete(true)}
+            data-testid="delete-account-btn"
+            style={{ width: '100%', borderRadius: 16, border: '1.5px solid #FFD0D0', background: '#FFF5F5', padding: 18, textAlign: 'left', cursor: 'pointer' }}
+          >
+            <p style={{ fontSize: 16, fontWeight: 800, color: '#E74C3C', marginBottom: 4 }}>{t.deleteAccount}</p>
+            <p style={{ fontSize: 13, color: '#E74C3C', opacity: 0.75 }}>{t.deleteAccountDesc}</p>
+          </button>
         )}
-
-      </ScrollView>
-    </SafeAreaView>
+      </div>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#F0EFFF' },
-  scroll: { flex: 1, backgroundColor: '#F0EFFF' },
-  container: {
-    padding: 24,
-    paddingBottom: 48,
-    backgroundColor: '#F0EFFF',
-  },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: '900',
-    color: '#333',
-    marginBottom: 6,
-    marginTop: 8,
-  },
-  sectionDesc: {
-    fontSize: 15,
-    color: '#777',
-    marginBottom: 20,
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 14,
-  },
-  chip: {
-    width: 80,
-    height: 80,
-    borderRadius: 20,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#ddd',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.07,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  chipWide: {
-    width: 100,
-  },
-  chipLang: {
-    width: 140,
-    height: 56,
-  },
-  chipTextLang: {
-    fontSize: 16,
-  },
-  chipSelected: {
-    backgroundColor: '#6C63FF',
-    borderColor: '#6C63FF',
-  },
-  chipText: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#555',
-  },
-  chipTextSelected: {
-    color: '#fff',
-  },
-  hint: {
-    marginTop: 16,
-    marginBottom: 4,
-    fontSize: 14,
-    color: '#999',
-  },
-  hintBold: {
-    color: '#6C63FF',
-    fontWeight: '800',
-  },
-  separator: {
-    height: 1,
-    backgroundColor: '#ddd',
-    marginVertical: 28,
-  },
-  toggleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 16,
-  },
-  toggleLabel: {
-    flex: 1,
-  },
-  deleteBtn: {
-    borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: '#FFD0D0',
-    backgroundColor: '#FFF5F5',
-    padding: 18,
-  },
-  deleteBtnTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#E74C3C',
-    marginBottom: 4,
-  },
-  deleteBtnDesc: {
-    fontSize: 13,
-    color: '#E74C3C',
-    opacity: 0.75,
-  },
-  confirmBar: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#FFD0D0',
-    shadowColor: '#E74C3C',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  confirmText: { fontSize: 14, color: '#555', marginBottom: 12, textAlign: 'center' },
-  confirmActions: { flexDirection: 'row', gap: 10 },
-  confirmCancel: {
-    flex: 1, paddingVertical: 10, borderRadius: 10,
-    backgroundColor: '#f5f5f5', alignItems: 'center',
-  },
-  confirmCancelText: { fontWeight: '700', color: '#888' },
-  confirmDelete: {
-    flex: 1, paddingVertical: 10, borderRadius: 10,
-    backgroundColor: '#E74C3C', alignItems: 'center',
-  },
-  confirmDeleteText: { fontWeight: '700', color: '#fff' },
-});

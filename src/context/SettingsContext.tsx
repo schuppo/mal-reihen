@@ -14,14 +14,10 @@ interface SettingsContextValue {
 }
 
 const SettingsContext = createContext<SettingsContextValue>({
-  testLength: 20,
-  setTestLength: () => {},
-  questionTimer: 10,
-  setQuestionTimer: () => {},
-  showCorrectAnswer: false,
-  setShowCorrectAnswer: () => {},
-  language: 'de',
-  setLanguage: () => {},
+  testLength: 20, setTestLength: () => {},
+  questionTimer: 10, setQuestionTimer: () => {},
+  showCorrectAnswer: false, setShowCorrectAnswer: () => {},
+  language: 'de', setLanguage: () => {},
 });
 
 interface SettingsProviderProps {
@@ -30,7 +26,6 @@ interface SettingsProviderProps {
   initialQuestionTimer?: number | null;
   initialShowCorrectAnswer?: boolean;
   initialLanguage?: Language;
-  /** Called after any setting changes so the caller can persist the new values. */
   onSave?: (settings: UserSettings) => void;
 }
 
@@ -48,13 +43,7 @@ export function SettingsProvider({
   const [language, _setLanguage] = useState<Language>(initialLanguage);
 
   function notify(patch: Partial<UserSettings>) {
-    onSave?.({
-      testLength,
-      questionTimer,
-      showCorrectAnswer,
-      language,
-      ...patch,
-    });
+    onSave?.({ testLength, questionTimer, showCorrectAnswer, language, ...patch });
   }
 
   function setTestLength(n: number) { _setTestLength(n); notify({ testLength: n }); }
@@ -69,6 +58,4 @@ export function SettingsProvider({
   );
 }
 
-export function useSettings() {
-  return useContext(SettingsContext);
-}
+export function useSettings() { return useContext(SettingsContext); }

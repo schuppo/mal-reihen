@@ -1,5 +1,4 @@
 import React from 'react';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 
 interface Props {
   onDigit: (d: string) => void;
@@ -15,85 +14,50 @@ const ROWS = [
   ['⌫', '0', '✓'],
 ];
 
+const base: React.CSSProperties = {
+  width: 90, height: 80, margin: '0 6px',
+  background: '#fff', borderRadius: 16,
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  fontSize: 28, fontWeight: 700, color: '#333',
+  boxShadow: '0 3px 8px rgba(108,99,255,0.15)',
+  userSelect: 'none', transition: 'opacity 0.2s',
+  border: 'none',
+};
+
 export default function NumPad({ onDigit, onBackspace, onConfirm, disabled }: Props) {
-  const handlePress = (key: string) => {
+  function handlePress(key: string) {
     if (disabled) return;
     if (key === '⌫') onBackspace();
     else if (key === '✓') onConfirm();
     else onDigit(key);
-  };
+  }
 
   return (
-    <View style={styles.container}>
+    <div style={{ width: '100%', maxWidth: 360, padding: '0 8px' }}>
       {ROWS.map((row, ri) => (
-        <View key={ri} style={styles.row}>
+        <div key={ri} style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
           {row.map(key => {
             const isConfirm = key === '✓';
             const isBack = key === '⌫';
             return (
-              <TouchableOpacity
+              <button
                 key={key}
-                style={[
-                  styles.key,
-                  isConfirm && styles.confirmKey,
-                  isBack && styles.backKey,
-                  disabled && styles.disabledKey,
-                ]}
-                onPress={() => handlePress(key)}
-                activeOpacity={0.7}
+                style={{
+                  ...base,
+                  background: isConfirm ? '#6C63FF' : isBack ? '#FFE4E4' : '#fff',
+                  color: isConfirm ? '#fff' : '#333',
+                  opacity: disabled ? 0.4 : 1,
+                  cursor: disabled ? 'default' : 'pointer',
+                }}
+                onClick={() => handlePress(key)}
+                tabIndex={-1}
               >
-                <Text style={[styles.keyText, isConfirm && styles.confirmText]}>
-                  {key}
-                </Text>
-              </TouchableOpacity>
+                {key}
+              </button>
             );
           })}
-        </View>
+        </div>
       ))}
-    </View>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-    maxWidth: 360,
-    paddingHorizontal: 8,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  key: {
-    width: 90,
-    height: 80,
-    marginHorizontal: 6,
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#6C63FF',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 4,
-  },
-  confirmKey: {
-    backgroundColor: '#6C63FF',
-  },
-  backKey: {
-    backgroundColor: '#FFE4E4',
-  },
-  disabledKey: {
-    opacity: 0.4,
-  },
-  keyText: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#333',
-  },
-  confirmText: {
-    color: '#fff',
-  },
-});

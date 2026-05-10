@@ -1,181 +1,107 @@
 import React, { useEffect } from 'react';
-import {
-  View, Text, StyleSheet, TouchableOpacity,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { StackScreenProps } from '@react-navigation/stack';
-import { RootStackParamList } from '../../App';
+import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useSettings } from '../context/SettingsContext';
 import { useTranslations } from '../i18n/translations';
 import { saveScore } from '../utils/scoreboard';
 import { useUser } from '../context/UserContext';
 
-type Props = StackScreenProps<RootStackParamList, 'Result'>;
+interface ResultParams {
+  correct: number;
+  total: number;
+  timeSeconds: number;
+  mode: 'training' | 'test';
+  tableFilter: number[] | 'all';
+  mistakes: { a: number; b: number }[];
+  timings?: number[];
+}
 
 function grade(pct: number, t: ReturnType<typeof useTranslations>) {
   if (pct === 100) return { emoji: '🥇', label: t.gradePerfect, color: '#FFD700' };
-  if (pct >= 80) return { emoji: '🥈', label: t.gradeGreat, color: '#6C63FF' };
-  if (pct >= 60) return { emoji: '🥉', label: t.gradeGood, color: '#FF9F43' };
-  return { emoji: '📚', label: t.gradeKeep, color: '#E74C3C' };
+  if (pct >= 80)   return { emoji: '🥈', label: t.gradeGreat,   color: '#6C63FF' };
+  if (pct >= 60)   return { emoji: '🥉', label: t.gradeGood,    color: '#FF9F43' };
+  return              { emoji: '📚', label: t.gradeKeep,    color: '#E74C3C' };
 }
 
 function formatTime(s: number) {
-  const m = Math.floor(s / 60);
-  const sec = s % 60;
+  const m = Math.floor(s / 60); const sec = s % 60;
   return m > 0 ? `${m}m ${sec}s` : `${sec}s`;
 }
 
-function calcTimingStats(timings: number[] | undefined): { min: number; max: number; median: number } | null {
+function calcTimingStats(timings?: number[]) {
   if (!timings || timings.length === 0) return null;
   const sorted = [...timings].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
-  const median = sorted.length % 2 === 0
-    ? Math.round((sorted[mid - 1] + sorted[mid]) / 2)
-    : sorted[mid];
+  const median = sorted.length % 2 === 0 ? Math.round((sorted[mid - 1] + sorted[mid]) / 2) : sorted[mid];
   return { min: sorted[0], max: sorted[sorted.length - 1], median };
 }
 
-export default function ResultScreen({ navigation, route }: Props) {
-  const { correct, total, timeSeconds, mode, tableFilter, mistakes, timings } = route.params;
+export default function ResultScreen() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const params = location.state as ResultParams | undefined;
+
+  if (!params) return <Navigate to="/" replace />;
+
+  const { correct, total, timeSeconds, mode, tableFilter, mistakes, timings } = params;
   const { language } = useSettings();
   const t = useTranslations(language);
   const { currentUser } = useUser();
   const pct = Math.round((correct / total) * 100);
   const { emoji, label, color } = grade(pct, t);
-  const timingStats = calcTimingStats(timings);
+  const ts = calcTimingStats(timings);
 
   useEffect(() => {
     saveScore({ correct, total, timeSeconds, mode, tableFilter, mistakes, timings }, currentUser?.id);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const stat = (num: string, lbl: string) => (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1 }}>
+      <span style={{ fontSize: 22, fontWeight: 800, color: '#333' }}>{num}</span>
+      <span style={{ fontSize: 12, color: '#999', marginTop: 2 }}>{lbl}</span>
+    </div>
+  );
+
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.container}>
-        <Text style={styles.emoji}>{emoji}</Text>
-        <Text style={[styles.label, { color }]}>{label}</Text>
+    <div style={{ minHeight: '100%', background: '#F0EFFF', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <div style={{ fontSize: 80, marginBottom: 8 }}>{emoji}</div>
+      <div style={{ fontSize: 28, fontWeight: 900, color, marginBottom: 32 }}>{label}</div>
 
-        <View style={styles.scoreCard}>
-          <View style={styles.scoreRow}>
-            <Text style={styles.scoreNum}>{correct}</Text>
-            <Text style={styles.scoreDivider}>/</Text>
-            <Text style={styles.scoreTotal}>{total}</Text>
-          </View>
-          <Text style={styles.scoreSubtext}>{t.correctAnswers}</Text>
+      <div style={{ background: '#fff', borderRadius: 28, padding: 32, width: '100%', maxWidth: 360, display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: '0 8px 32px rgba(108,99,255,0.12)', marginBottom: 32 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: 4 }}>
+          <span style={{ fontSize: 72, fontWeight: 900, color: '#6C63FF' }}>{correct}</span>
+          <span style={{ fontSize: 40, color: '#ccc', margin: '0 8px' }}>/</span>
+          <span style={{ fontSize: 40, fontWeight: 700, color: '#ccc' }}>{total}</span>
+        </div>
+        <p style={{ fontSize: 14, color: '#aaa', marginBottom: 24 }}>{t.correctAnswers}</p>
 
-          <View style={styles.divider} />
+        <div style={{ width: '100%', height: 1, background: '#f0f0f0', marginBottom: 24 }} />
 
-          <View style={styles.statsRow}>
-            <View style={styles.stat}>
-              <Text style={styles.statNum}>{pct}%</Text>
-              <Text style={styles.statLabel}>{t.score}</Text>
-            </View>
-            <View style={styles.stat}>
-              <Text style={styles.statNum}>{formatTime(timeSeconds)}</Text>
-              <Text style={styles.statLabel}>{t.time}</Text>
-            </View>
-            <View style={styles.stat}>
-              <Text style={styles.statNum}>{(timeSeconds / total).toFixed(1)}s</Text>
-              <Text style={styles.statLabel}>{t.scoreboardTimePerAnswer}</Text>
-            </View>
-            <View style={styles.stat}>
-              <Text style={styles.statNum}>{total - correct}</Text>
-              <Text style={styles.statLabel}>{t.mistakes}</Text>
-            </View>
-          </View>
+        <div style={{ display: 'flex', justifyContent: 'space-around', width: '100%' }}>
+          {stat(`${pct}%`, t.score)}
+          {stat(formatTime(timeSeconds), t.time)}
+          {stat(`${(timeSeconds / total).toFixed(1)}s`, t.scoreboardTimePerAnswer)}
+          {stat(`${total - correct}`, t.mistakes)}
+        </div>
 
-          {timingStats && (
-            <View style={styles.statsRow2}>
-              <View style={styles.stat}>
-                <Text style={styles.statNum}>{timingStats.min}s</Text>
-                <Text style={styles.statLabel}>{t.statMin}</Text>
-              </View>
-              <View style={styles.stat}>
-                <Text style={styles.statNum}>{timingStats.median}s</Text>
-                <Text style={styles.statLabel}>{t.statMedian}</Text>
-              </View>
-              <View style={styles.stat}>
-                <Text style={styles.statNum}>{timingStats.max}s</Text>
-                <Text style={styles.statLabel}>{t.statMax}</Text>
-              </View>
-            </View>
-          )}
-        </View>
+        {ts && (
+          <div style={{ display: 'flex', justifyContent: 'space-around', width: '100%', marginTop: 16, paddingTop: 16, borderTop: '1px solid #f0f0f0' }}>
+            {stat(`${ts.min}s`, t.statMin)}
+            {stat(`${ts.median}s`, t.statMedian)}
+            {stat(`${ts.max}s`, t.statMax)}
+          </div>
+        )}
+      </div>
 
-        <TouchableOpacity
-          style={[styles.btn, { backgroundColor: color }]}
-          onPress={() => navigation.replace('Exercise', { mode: 'test', tableFilter })}
-        >
-          <Text style={styles.btnText}>{t.tryAgain}</Text>
-        </TouchableOpacity>
+      <button
+        style={{ width: '100%', maxWidth: 360, height: 60, borderRadius: 18, background: color, border: 'none', color: '#fff', fontSize: 20, fontWeight: 800, cursor: 'pointer', marginBottom: 12 }}
+        onClick={() => navigate('/exercise', { state: { mode: 'test', tableFilter } })}
+      >{t.tryAgain}</button>
 
-        <TouchableOpacity
-          style={styles.homeBtn}
-          onPress={() => navigation.popToTop()}
-        >
-          <Text style={styles.homeBtnText}>{t.home}</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+      <button
+        style={{ width: '100%', maxWidth: 360, height: 60, borderRadius: 18, background: '#fff', border: '2px solid #ddd', color: '#888', fontSize: 18, fontWeight: 700, cursor: 'pointer' }}
+        onClick={() => navigate('/')}
+      >{t.home}</button>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#F0EFFF' },
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-    backgroundColor: '#F0EFFF',
-  },
-  emoji: { fontSize: 80, marginBottom: 8 },
-  label: { fontSize: 28, fontWeight: '900', marginBottom: 32 },
-  scoreCard: {
-    backgroundColor: '#fff',
-    borderRadius: 28,
-    padding: 32,
-    width: '100%',
-    maxWidth: 360,
-    alignItems: 'center',
-    shadowColor: '#6C63FF',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 20,
-    elevation: 6,
-    marginBottom: 32,
-  },
-  scoreRow: { flexDirection: 'row', alignItems: 'baseline', marginBottom: 4 },
-  scoreNum: { fontSize: 72, fontWeight: '900', color: '#6C63FF' },
-  scoreDivider: { fontSize: 40, color: '#ccc', marginHorizontal: 8 },
-  scoreTotal: { fontSize: 40, fontWeight: '700', color: '#ccc' },
-  scoreSubtext: { fontSize: 14, color: '#aaa', marginBottom: 24 },
-  divider: { width: '100%', height: 1, backgroundColor: '#f0f0f0', marginBottom: 24 },
-  statsRow: { flexDirection: 'row', justifyContent: 'space-around', width: '100%' },
-  statsRow2: { flexDirection: 'row', justifyContent: 'space-around', width: '100%', marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: '#f0f0f0' },
-  stat: { alignItems: 'center' },
-  statNum: { fontSize: 22, fontWeight: '800', color: '#333' },
-  statLabel: { fontSize: 12, color: '#999', marginTop: 2 },
-  btn: {
-    width: '100%',
-    maxWidth: 360,
-    height: 60,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  btnText: { fontSize: 20, fontWeight: '800', color: '#fff' },
-  homeBtn: {
-    width: '100%',
-    maxWidth: 360,
-    height: 60,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fff',
-    borderWidth: 2,
-    borderColor: '#ddd',
-  },
-  homeBtnText: { fontSize: 18, fontWeight: '700', color: '#888' },
-});

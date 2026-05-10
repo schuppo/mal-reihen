@@ -1,17 +1,10 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   loadUsers, registerUser, loginUser, updateUserSettings,
   getSessionUserId, setSessionUserId, clearSession,
   DEFAULT_SETTINGS,
-} from '../utils/users';
+} from './users';
 
-jest.mock('@react-native-async-storage/async-storage', () =>
-  require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
-);
-
-beforeEach(() => {
-  (AsyncStorage as any).clear();
-});
+// localStorage is reset in test-setup.ts beforeEach
 
 describe('registerUser', () => {
   it('creates a new user with default settings', async () => {

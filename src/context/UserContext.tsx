@@ -30,14 +30,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Restore session on mount
   useEffect(() => {
     (async () => {
       const userId = await getSessionUserId();
       if (userId) {
         const users = await loadUsers();
-        const user = users.find(u => u.id === userId) ?? null;
-        setCurrentUser(user);
+        setCurrentUser(users.find(u => u.id === userId) ?? null);
       }
       setIsLoading(false);
     })();
@@ -45,17 +43,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   async function login(username: string): Promise<boolean> {
     const user = await loginUser(username);
-    if (user) {
-      setCurrentUser(user);
-      await setSessionUserId(user.id);
-      return true;
-    }
+    if (user) { setCurrentUser(user); await setSessionUserId(user.id); return true; }
     return false;
   }
 
-  async function register(
-    username: string,
-  ): Promise<{ success: boolean; error?: string }> {
+  async function register(username: string): Promise<{ success: boolean; error?: string }> {
     const result = await registerUser(username);
     if (result.success && result.user) {
       setCurrentUser(result.user);
